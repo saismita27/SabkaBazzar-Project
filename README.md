@@ -6,7 +6,22 @@ The existing visual storefront is preserved. The new **C++17 Linux backend** per
 
 **This repository is still mixed-language:** the UI uses React/TypeScript, HTML and CSS. It does not satisfy a strict “only C/C++” rule without a trainer-approved UI exception. No 80% claim is made. Profiles and administrator controls are local demonstrations, not production authentication.
 
-## Run this version
+## Native C++ Linux application (new)
+
+The native terminal interface shares the existing C++ backend and SQLite database. It needs **no Node, React, TypeScript or browser**. From the repository root in Ubuntu:
+
+```bash
+cmake -S backend -B backend/build -DCMAKE_BUILD_TYPE=Debug
+cmake --build backend/build -j2
+backend/build/sabka_backend backend/demo.sqlite backend/catalogue.json - --fifo
+```
+
+In a second Ubuntu terminal in the same directory: `backend/build/sabka_cli`.
+Use the numbered menu for search (try `tej patta`), cart, wishlist, simulated checkout, orders, tracking and support. After pairing through Help, `backend/build/sabka_help_trigger --fifo` sends a real userspace FIFO write.
+
+See [Native Linux walkthrough](docs/NATIVE_LINUX.md), [Project status](PROJECT_STATUS.md), and [Contributor instructions](AGENTS.md). This native execution path is C++ on Linux; the optional website below is still mixed-language. The kernel-driver test remains outstanding.
+
+## Run the optional website
 
 From this project directory in VS Code PowerShell (Node 22.12+):
 
@@ -47,7 +62,7 @@ sudo apt install build-essential cmake pkg-config libcpp-httplib-dev libsqlite3-
 printf 'HELP\n' > /tmp/sabka-backend-$(id -u)/help.fifo
 ```
 
-The C++ worker waits with poll(), reads the FIFO, persists an event to SQLite, and the paired browser's polling opens Help. Other sessions do not receive it. Pairing is one active session, last explicit pairing wins, and resets when the server restarts. Already delivered events may reappear on page reload; acknowledgement persistence is not implemented.
+The C++ worker waits with poll(), reads the FIFO, persists an event to SQLite, and the paired browser's polling opens Help. Other sessions do not receive it. Pairing is one active session, last explicit pairing wins, and resets when the server restarts. Help acknowledgements now persist in SQLite, preventing an acknowledged event from reopening after reload.
 
 To use the real driver on a compatible Linux host, replace --fifo with /dev/sabka_help. The existing C driver is write-triggered educational hardware simulation, not genuine GPIO. The driver **has not been built or loaded on this WSL kernel** because the matching build tree is missing. Do not claim the FIFO test validates kernel behaviour.
 
@@ -59,7 +74,7 @@ Stop the demo first, then:
 bash backend/test.sh
 ```
 
-The C++ smoke client checks invalid quantities, checkout, duplicate prevention, stock deduction/restoration, invalid transitions, session isolation, request-header protection, alias search, FIFO session targeting, graceful termination and order/support persistence after restart. Temporary test databases are outside the project; the real demo database is not touched.
+The C++ smoke client checks invalid quantities (including overflow/fractional input), checkout, duplicate prevention, stock deduction/restoration, invalid transitions, session isolation, request-header protection, alias search, FIFO targeting, persisted acknowledgements, history-preserving demo logout, graceful shutdown and restart persistence. The harness also exercises native CLI search, cart, checkout, orders, support and help. Temporary test databases are outside the project; the real demo database is not touched.
 
 ## Code map
 

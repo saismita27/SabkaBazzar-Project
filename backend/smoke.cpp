@@ -13,7 +13,8 @@ int main(int argc,char** argv){
   std::ifstream file(argv[2]);std::string saved;std::getline(file,saved);
   auto r=client.Get("/api/state",{{"Cookie",saved}});check(r&&r->status==200,"restart response");auto state=J::parse(r->body);
   check(state["orders"].size()==1&&state["orders"][0]["status"]=="Cancelled","order survives process restart");
-  check(state["supportTickets"].size()==1,"support survives process restart");return 0;
+  check(state["supportTickets"].size()==1,"support survives process restart");
+  check(state["helpEvent"].value("handled",false),"help acknowledgement survives restart");return 0;
  }
  auto initial=client.Get("/api/state");check(initial&&initial->status==200,"server state");
  std::string cookie=initial->get_header_value("Set-Cookie");cookie=cookie.substr(0,cookie.find(';'));
@@ -21,6 +22,9 @@ int main(int argc,char** argv){
  auto call=[&](J body,int status=200){auto r=client.Post("/api/action",headers,body.dump(),"application/json");check(r&&r->status==status,"action HTTP status");return J::parse(r->body);};
  auto products=client.Get("/api/products");auto p=J::parse(products->body).at(0);auto pid=p["id"];int stock=p["stock"];
  call({{"op","cart.add"},{"productId",pid},{"quantity",-1}},400);
+ call({{"op","cart.add"},{"productId",pid},{"quantity",0}},400);
+ call({{"op","cart.add"},{"productId",pid},{"quantity",4294967297LL}},400);
+ call({{"op","cart.add"},{"productId",pid},{"quantity",1.5}},400);
  call({{"op","cart.add"},{"productId",pid},{"quantity",1}});
  J address={{"fullName","Test"},{"addressLine","Demo address"},{"city","Demo"},{"state","Odisha"},{"pincode","751001"},{"mobile","9000000000"}};
  J payload={{"op","checkout"},{"address",address},{"payment","COD"},{"key","test-checkout"}};
@@ -42,6 +46,11 @@ int main(int argc,char** argv){
  J paired;for(int i=0;i<20;++i){paired=J::parse(client.Get("/api/state",headers)->body);if(paired.contains("helpEvent"))break;usleep(100000);}
  check(paired.contains("helpEvent")&&paired["helpEvent"]["source"]=="USERSPACE_FIFO_SIMULATOR","Linux FIFO event reaches paired session");
  check(!J::parse(client.Get("/api/state")->body).contains("helpEvent"),"help event does not reach other session");
+ call({{"op","help.ack"},{"eventId",paired["helpEvent"]["eventId"]}});
+ check(J::parse(client.Get("/api/state",headers)->body)["helpEvent"]["handled"]==true,"help acknowledgement persisted");
+ call({{"op","profile"},{"user",{{"name","Test"}}}});
+ auto loggedOut=call({{"op","logout"}})["state"];
+ check(loggedOut["user"].is_null()&&loggedOut["orders"].size()==1&&loggedOut["supportTickets"].size()==1,"demo logout preserves order and support history");
  auto search=client.Get("/api/products?q=tej%20patta");check(search&&J::parse(search->body).size()>0,"local alias search");
  if(argc>1){std::ofstream file(argv[1]);file<<cookie;}
  std::cout<<"ALL CHECKS PASSED\n";

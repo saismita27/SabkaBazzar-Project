@@ -51,4 +51,8 @@ cpp-httplib: HTTP parsing and serving; SQLite: persistent transactions; nlohmann
 
 ## Remaining work
 
-Authenticated accounts, privileged admin boundary, help acknowledgement persistence, full normalized schema, runtime catalogue refresh after stock changes, product editing, real kernel-driver test on a compatible host, full accessibility/language review, and removal/rewrite of the frontend if the trainer requires only C/C++.
+Authenticated accounts, privileged admin boundary, full normalized schema, runtime catalogue refresh after stock changes, product editing, real kernel-driver test on a compatible host, full accessibility/language review, and removal/rewrite of the frontend if the trainer requires only C/C++.
+
+## Native continuation, October 4–5
+
+Added native C++ CLI and POSIX help trigger against the same backend, with no frontend dependency. Static hosting can be disabled using `-`. Persisted help acknowledgements and history-preserving demo logout are implemented. Quantity bounds now reject fractional/zero/overflowing additions before conversion. Ubuntu build and the extended native/backend regression suite passed. See `NATIVE_LINUX.md` and root `PROJECT_STATUS.md`.

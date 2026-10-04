@@ -57,6 +57,7 @@ struct Store {
     std::string pid=a.at("productId"),v=a.value("variant",std::string());J p=product(pid);
     if(!v.empty()&&(!p.contains("variants")||std::find(p["variants"].begin(),p["variants"].end(),v)==p["variants"].end()))throw std::invalid_argument("Invalid variant");
     if(op!="cart.remove"&&!a.at("quantity").is_number_integer())throw std::invalid_argument("Quantity must be an integer");
+    if(op!="cart.remove"&&(a.at("quantity")<0||a.at("quantity")>99||(op=="cart.add"&&a.at("quantity")==0)))throw std::invalid_argument("Invalid quantity");
     int qty=op=="cart.remove"?0:a.at("quantity").get<int>();if(qty<0||qty>99)throw std::invalid_argument("Quantity must be 0 to 99");
     auto& c=s["cart"];auto it=std::find_if(c.begin(),c.end(),[&](auto& x){return x["product"]["id"]==pid&&x.value("selectedVariant",std::string())==v;});
     if(op=="cart.add"&&it!=c.end())qty+=(*it)["quantity"].template get<int>();
@@ -68,7 +69,10 @@ struct Store {
    else if(op=="wishlist.toggle"){auto p=product(a.at("productId"));auto& w=s["wishlist"];auto it=std::find_if(w.begin(),w.end(),[&](auto& x){return x["id"]==p["id"];});if(it==w.end())w.push_back(p);else w.erase(it);}
    else if(op=="profile"){s["user"]=a.at("user");s["user"]["id"]=id;s["user"]["role"]="customer";}
    else if(op=="address"){s["addresses"].push_back(a.at("address"));}
-   else if(op=="logout"){s=initial();if(paired==id)paired.clear();}
+   else if(op=="logout"){s["user"]=nullptr;if(paired==id)paired.clear();}
+   else if(op=="help.ack"){
+    if(s.contains("helpEvent")&&s["helpEvent"]["eventId"]==a.at("eventId"))s["helpEvent"]["handled"]=true;
+   }
    else if(op=="checkout"){
     std::string key=a.at("key");if(key.empty()||key.size()>128)throw std::invalid_argument("Invalid checkout key");
     J payload={{"address",a.at("address")},{"payment",a.at("payment")}};
@@ -126,7 +130,7 @@ int main(int argc,char** argv){
    J results=J::array();for(auto& item:matches)results.push_back(item.second);
    res.set_content(results.dump(),"application/json");
   });
-  if(argc>3&&!server.set_mount_point("/",argv[3]))throw std::runtime_error("Static directory missing");
+  if(argc>3&&std::string(argv[3])!="-"&&!server.set_mount_point("/",argv[3]))throw std::runtime_error("Static directory missing");
   if(!server.bind_to_port("127.0.0.1",8080))throw std::runtime_error("Port 8080 unavailable");
   HelpBridge bridge(argc>4?argv[4]:"",[&](const std::string& source){std::lock_guard<std::mutex> lock(store.mutex);store.help(source);});
   std::thread shutdown([&]{int signal=0;sigwait(&signals,&signal);server.stop();});

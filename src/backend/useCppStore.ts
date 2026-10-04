@@ -25,7 +25,10 @@ export function useCppStore(language: string, selectedState: string, onHelp: (ev
   const timer = window.setInterval(() => {
    request('state').then(data => {
     const event = data.helpEvent;
-    if (event && event.eventId > lastHelp.current) {lastHelp.current=event.eventId;helpCallback.current(event);}
+    if (event && !event.handled && event.eventId > lastHelp.current) {
+     lastHelp.current=event.eventId;helpCallback.current(event);
+     request('action',{op:'help.ack',eventId:event.eventId}).catch(() => {lastHelp.current=0;});
+    }
    }).catch(() => {});
   }, 1000);
   return () => window.clearInterval(timer);

@@ -14,3 +14,11 @@ add_executable(sabka_smoke smoke.cpp)
 target_link_libraries(sabka_smoke PRIVATE PkgConfig::HTTP nlohmann_json::nlohmann_json)
 find_package(ICU REQUIRED COMPONENTS uc)
 target_link_libraries(sabka_backend PRIVATE ICU::uc)
+
+# Native Linux shopping UI: no Node, browser, React or TypeScript needed.
+add_executable(sabka_cli cli.cpp)
+target_link_libraries(sabka_cli PRIVATE PkgConfig::HTTP nlohmann_json::nlohmann_json)
+target_compile_options(sabka_cli PRIVATE -Wall -Wextra -Wpedantic)
+
+add_executable(sabka_help_trigger help_trigger.cpp)
+target_compile_options(sabka_help_trigger PRIVATE -Wall -Wextra -Wpedantic)

@@ -4,3 +4,6 @@
 *.cpp text eol=lf
 *.h text eol=lf
 Makefile text eol=lf
+*.hpp text eol=lf
+*.md text eol=lf
+CMakeLists.txt text eol=lf
