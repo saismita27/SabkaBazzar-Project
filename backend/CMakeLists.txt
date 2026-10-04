@@ -22,3 +22,7 @@ target_compile_options(sabka_cli PRIVATE -Wall -Wextra -Wpedantic)
 
 add_executable(sabka_help_trigger help_trigger.cpp)
 target_compile_options(sabka_help_trigger PRIVATE -Wall -Wextra -Wpedantic)
+
+add_executable(sabka_web_smoke web_smoke.cpp)
+target_link_libraries(sabka_web_smoke PRIVATE PkgConfig::HTTP nlohmann_json::nlohmann_json)
+target_compile_options(sabka_web_smoke PRIVATE -Wall -Wextra -Wpedantic)

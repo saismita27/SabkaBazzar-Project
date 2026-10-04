@@ -102,6 +102,7 @@ struct Store {
   }catch(...){exec("ROLLBACK");throw;}
  }
 };
+#include "web.hpp"
 int main(int argc,char** argv){
  try{
   if(sodium_init()<0)return 1;
@@ -130,7 +131,9 @@ int main(int argc,char** argv){
    J results=J::array();for(auto& item:matches)results.push_back(item.second);
    res.set_content(results.dump(),"application/json");
   });
-  if(argc>3&&std::string(argv[3])!="-"&&!server.set_mount_point("/",argv[3]))throw std::runtime_error("Static directory missing");
+  web::install(server,store,session);
+  const std::string assets=argc>3?argv[3]:"public";
+  if(assets!="-"&&!server.set_mount_point("/",assets))throw std::runtime_error("Static directory missing");
   if(!server.bind_to_port("127.0.0.1",8080))throw std::runtime_error("Port 8080 unavailable");
   HelpBridge bridge(argc>4?argv[4]:"",[&](const std::string& source){std::lock_guard<std::mutex> lock(store.mutex);store.help(source);});
   std::thread shutdown([&]{int signal=0;sigwait(&signals,&signal);server.stop();});

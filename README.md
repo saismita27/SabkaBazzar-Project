@@ -1,104 +1,70 @@
-# Sabka Bazaar — C++ Linux shopping backend and multilingual storefront
+# Sabka Bazaar — C++ / Linux Shopping Demonstration
 
-## Current implementation (October 4, 2026)
+**Where every family finds its favourites**
 
-The existing visual storefront is preserved. The new **C++17 Linux backend** performs catalogue search, cart validation, price calculations, transactional checkout, stock changes, order transitions, wishlist, address and support persistence. SQLite is authoritative in C++ mode.
+From daily essentials to little celebrations — sabke liye, sab kuch
 
-**This repository is still mixed-language:** the UI uses React/TypeScript, HTML and CSS. It does not satisfy a strict “only C/C++” rule without a trainer-approved UI exception. No 80% claim is made. Profiles and administrator controls are local demonstrations, not production authentication.
+The active storefront is rendered by C++17. Ordinary HTML forms call the same C++/SQLite shopping logic used by the native terminal client. No Node, React, TypeScript, browser JavaScript or Python is needed to build or run this version. HTML and CSS remain presentation formats; JSON is catalogue data and Bash/CMake are build/test orchestration, so do not describe every repository file as C++.
 
-## Native C++ Linux application (new)
+## Run on Ubuntu
 
-The native terminal interface shares the existing C++ backend and SQLite database. It needs **no Node, React, TypeScript or browser**. From the repository root in Ubuntu:
-
-```bash
-cmake -S backend -B backend/build -DCMAKE_BUILD_TYPE=Debug
-cmake --build backend/build -j2
-backend/build/sabka_backend backend/demo.sqlite backend/catalogue.json - --fifo
-```
-
-In a second Ubuntu terminal in the same directory: `backend/build/sabka_cli`.
-Use the numbered menu for search (try `tej patta`), cart, wishlist, simulated checkout, orders, tracking and support. After pairing through Help, `backend/build/sabka_help_trigger --fifo` sends a real userspace FIFO write.
-
-See [Native Linux walkthrough](docs/NATIVE_LINUX.md), [Project status](PROJECT_STATUS.md), and [Contributor instructions](AGENTS.md). This native execution path is C++ on Linux; the optional website below is still mixed-language. The kernel-driver test remains outstanding.
-
-## Run the optional website
-
-From this project directory in VS Code PowerShell (Node 22.12+):
-
-```powershell
-npm ci
-npm run build:cpp
-wsl -d Ubuntu
-```
-
-Then in Ubuntu:
-
-```bash
-cd '/mnt/c/Users/saism/OneDrive/Desktop/wipro project/sabka-bazzar-multilingual accessible shopping'
-cmake -S backend -B backend/build -DCMAKE_BUILD_TYPE=Debug
-cmake --build backend/build -j2
-backend/build/sabka_backend backend/demo.sqlite backend/catalogue.json dist --fifo
-```
-
-Open **http://127.0.0.1:8080/**. Keep the Ubuntu terminal running. Ctrl+C stops the server gracefully. Do not run two servers on port 8080.
-
-On a native Linux machine with Node 22.12+ installed, the frontend build commands also run there. Do not copy Windows node_modules to Linux: install dependencies on the target platform.
-
-Existing Ubuntu dependencies: g++ 13.3, CMake 3.28, cpp-httplib 0.14.3, SQLite 3.45.1, libsodium 1.0.18, nlohmann-json 3.11.3, ICU 74.2. For a fresh Ubuntu installation:
+Install dependencies once if absent:
 
 ```bash
 sudo apt update
-sudo apt install build-essential cmake pkg-config libcpp-httplib-dev libsqlite3-dev libsodium-dev nlohmann-json3-dev libicu-dev curl
+sudo apt install build-essential cmake pkg-config libcpp-httplib-dev nlohmann-json3-dev libsqlite3-dev libsodium-dev libicu-dev
 ```
 
-## Demonstrate Linux help events
-
-1. Start with --fifo as above. This explicitly selects a **userspace simulator**.
-2. In the intended browser, click the existing **Simulate Kiosk Hardware Help** footer button once. In C++ mode this also pairs that browser session with kiosk 101.
-3. Close the help panel.
-4. In a second Ubuntu terminal:
+From this repository's root in Ubuntu:
 
 ```bash
-printf 'HELP\n' > /tmp/sabka-backend-$(id -u)/help.fifo
+cmake -S backend -B backend/build -DCMAKE_BUILD_TYPE=Debug
+cmake --build backend/build -j2
+backend/build/sabka_backend backend/demo.sqlite backend/catalogue.json public --fifo
 ```
 
-The C++ worker waits with poll(), reads the FIFO, persists an event to SQLite, and the paired browser's polling opens Help. Other sessions do not receive it. Pairing is one active session, last explicit pairing wins, and resets when the server restarts. Help acknowledgements now persist in SQLite, preventing an acknowledged event from reopening after reload.
+Open **http://127.0.0.1:8080/**. Stop with Ctrl+C. The server is deliberately loopback-only. Run `backend/build/sabka_cli` in another Ubuntu terminal for the native C++ interface. Do not use the old npm commands or ports 3000–3004.
 
-To use the real driver on a compatible Linux host, replace --fifo with /dev/sabka_help. The existing C driver is write-triggered educational hardware simulation, not genuine GPIO. The driver **has not been built or loaded on this WSL kernel** because the matching build tree is missing. Do not claim the FIFO test validates kernel behaviour.
+## Implemented
 
-## Repeat tests
+- Existing 160-product catalogue and local branded photographs.
+- C++ Unicode-normalized alias search, department filter and price sorting.
+- Product pages, persistent session cart and wishlist; Add to Cart becomes Go to Cart.
+- Server-side stock checks, transactional demo checkout and duplicate-submit protection.
+- Orders, simulated tracking, eligible cancellation and stock restoration.
+- Persistent support tickets, demo profile and Easy Shopping controls.
+- Paired Linux help events using descriptors, poll, a worker thread and graceful signal shutdown.
+- HTML escaping, per-session form CSRF tokens and restrictive script-free page policy.
 
-Stop the demo first, then:
+## Test
+
+Stop the demo server first, then:
 
 ```bash
 bash backend/test.sh
 ```
 
-The C++ smoke client checks invalid quantities (including overflow/fractional input), checkout, duplicate prevention, stock deduction/restoration, invalid transitions, session isolation, request-header protection, alias search, FIFO targeting, persisted acknowledgements, history-preserving demo logout, graceful shutdown and restart persistence. The harness also exercises native CLI search, cart, checkout, orders, support and help. Temporary test databases are outside the project; the real demo database is not touched.
+This launches isolated test databases and C++ test executables. Tests cover checkout, quantity bounds, stock, session isolation, cancellation, support, alias search, FIFO targeting, restart persistence, CLI flow and HTML forms. It does not load a kernel module.
 
-## Code map
+## Architecture and files
 
-- backend/server.cpp: HTTP handlers, SQLite prepared statements, RAII cleanup, serialized transactions and business rules.
-- backend/search.hpp: ICU Unicode NFKC case-folding and exact/prefix/substring ranking.
-- backend/help_bridge.hpp: Linux file descriptors, explicit FIFO/device mode, poll/read, worker lifetime and shutdown.
-- backend/smoke.cpp: C++ integration client.
-- backend/catalogue.json: existing 160 products, with original images and sample prices.
-- src/backend/useCppStore.ts: thin UI request adapter and help-event polling.
-- embedded/driver/sabka_help_driver.c: C device driver source with wait queue, poll and copy_to_user.
-- docs/CPP_MIGRATION.md: architecture, evidence and limitations.
+- `backend/server.cpp`: HTTP routes, SQLite storage and transaction rules.
+- `backend/web.hpp`: C++ page renderer and form controllers.
+- `backend/cli.cpp`: native C++ terminal UI.
+- `backend/search.hpp`: ICU normalization.
+- `backend/help_bridge.hpp`, `backend/help_trigger.cpp`: Linux userspace event integration.
+- `backend/smoke.cpp`, `backend/web_smoke.cpp`: compiled integration tests.
+- `backend/catalogue.json`: preserved catalogue, translations/aliases and photo references.
+- `public/store.css`, `public/images/`: presentation and preserved product photographs.
+- `embedded/driver/sabka_help_driver.c`: educational C character-device source.
+- `docs/`: historical implementation notes and evidence; this README and PROJECT_STATUS.md describe the current run path.
 
-## Design and limits
+SQLite stores session documents and authoritative product stock. Seeding inserts missing IDs without resetting existing stock. Keep runtime databases/cookies out of Git. Payments, delivery, prices and stock are demonstrations, not live commercial services.
 
-Sessions use a random libsodium-generated HttpOnly, SameSite cookie. This isolates browser sessions, but does not verify identity. There is no password authentication or protected administrator role. Support replies and order advancement remain simulation controls scoped to the same session. Loopback-only, for a local demo; do not expose this server publicly.
+## Limits to present honestly
 
-The server takes product IDs and quantities, looks up prices itself, uses integer paise for totals, and commits stock plus order/session state together. A repeated checkout key returns the existing result; changed address/payment using that key is rejected. Tax is an illustrative rounded 5%, not a verified tax schedule.
+Profiles are not authenticated accounts. Secure login, session expiration and protected administrator functions remain pending. The English interface offers catalogue language selection, but many product translations fall back to English and need human review. Browser voice is unavailable in the JavaScript-free interface. Help events appear on page refresh; they do not automatically open a browser panel. Buy Now adds the item and opens checkout for the current cart. The catalogue is 160 products, not 200 per subcategory. No real payments, courier, agent, SMS or AI chatbot is connected.
 
-Client records are JSON documents inside SQLite; product stock is a separate table. This is intentionally a small prototype, not a fully normalized commerce schema. There are no real payments, deliveries, calls or AI agents.
+The C driver has **not** been compiled/loaded on the current WSL kernel because matching kernel build files are absent. FIFO testing does not satisfy the real driver demonstration. Use a compatible Linux host to complete that requirement; do not change the kernel just to hide this limitation.
 
-The browser UI's sample stock labels can lag other sessions; the server validates stock at cart changes and checkout. The original browser-only mode remains available with npm run dev. Its state is separate from the C++ database. Historic repair/stage documents describe earlier work and plans, not proof of current completion.
-
-The catalogue's prices/ratings are demonstration values, not verified live prices. Photo references are in docs and public/photo-credits.html. Language coverage and accessibility require human review.
-
-## Backup
-
-The original uploaded site is preserved on local branch backup/react-before-cpp. Generated binaries, databases, dist, node_modules and secrets are excluded from Git.
+The previous React implementation is recoverable at commit `bf91a2bd4b1c729f9e68c8ea68d815c399acc573` and local branch `backup/before-server-rendered-cpp`. This conversion replaces the active interface, rather than disguising TypeScript as C++.

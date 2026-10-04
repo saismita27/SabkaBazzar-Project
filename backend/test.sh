@@ -4,7 +4,7 @@ cd "$(dirname "$0")/.."
 if curl -fsS http://127.0.0.1:8080/api/health >/dev/null 2>&1; then echo 'Stop the demo on port 8080 before tests'; exit 1; fi
 tmp=$(mktemp -d)
 start() {
- backend/build/sabka_backend "$tmp/test.sqlite" backend/catalogue.json - --fifo > "$tmp/server.log" 2>&1 &
+ backend/build/sabka_backend "$tmp/test.sqlite" backend/catalogue.json public --fifo > "$tmp/server.log" 2>&1 &
  pid=$!
  for i in {1..40}; do
   kill -0 "$pid" || { cat "$tmp/server.log"; exit 1; }
@@ -19,6 +19,7 @@ cleanup() {
 trap cleanup EXIT
 start
 backend/build/sabka_smoke "$tmp/cookie"
+backend/build/sabka_web_smoke
 kill -TERM "$pid"
 wait "$pid"
 echo 'PASS graceful SIGTERM shutdown'
