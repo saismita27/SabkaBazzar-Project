@@ -1,0 +1,254 @@
+[
+  {
+    "id": "prod-bay-leaf",
+    "name": "BB Royal Organic Bay Leaf - 100 g",
+    "brand": "BB Royal Organic",
+    "unit": "100 g",
+    "source": "https://www.bigbasket.com/pd/40176441/bb-royal-organic-bay-leaftej-patta-100-g/",
+    "image": "https://www.bbassets.com/media/uploads/p/l/40176441_5-bb-royal-organic-bay-leaftej-patta.jpg",
+    "localImage": "/images/grocery-brands/prod-bay-leaf.jpg"
+  },
+  {
+    "id": "prod-turmeric",
+    "name": "Tata Sampann Turmeric Powder - 200 g",
+    "brand": "Tata Sampann",
+    "unit": "200 g",
+    "source": "https://www.bigbasket.com/pd/40070769/tata-sampann-turmeric-powder-200-g/",
+    "image": "https://www.bbassets.com/media/uploads/p/l/40070769_16-tata-sampann-turmeric-powder.jpg",
+    "localImage": "/images/grocery-brands/prod-turmeric.jpg"
+  },
+  {
+    "id": "prod-cumin",
+    "name": "Tata Sampann Whole Cumin Seeds - 200 g",
+    "brand": "Tata Sampann",
+    "unit": "200 g",
+    "source": "https://www.bigbasket.com/pd/40334089/tata-sampann-whole-spices-cumin-seeds-200-g/",
+    "image": "https://www.bbassets.com/media/uploads/p/l/40334089_3-tata-sampann-whole-spices-cumin-seeds.jpg",
+    "localImage": "/images/grocery-brands/prod-cumin.jpg"
+  },
+  {
+    "id": "prod-mustard-seeds",
+    "name": "Tata Sampann Whole Mustard - 200 g",
+    "brand": "Tata Sampann",
+    "unit": "200 g",
+    "source": "https://www.bigbasket.com/pd/40355767/tata-sampann-mustard-whole-200-g/",
+    "image": "https://www.bbassets.com/media/uploads/p/l/40355767_1-tata-sampann-mustard-whole.jpg",
+    "localImage": "/images/grocery-brands/prod-mustard-seeds.jpg"
+  },
+  {
+    "id": "prod-garam-masala",
+    "name": "Tata Sampann Garam Masala - 100 g",
+    "brand": "Tata Sampann",
+    "unit": "100 g",
+    "source": "https://www.bigbasket.com/pd/40070774/tata-sampann-garam-masala-with-natural-oils-100-g/",
+    "image": "https://www.bbassets.com/media/uploads/p/l/40070774_14-tata-sampann-garam-masala-with-natural-oils.jpg",
+    "localImage": "/images/grocery-brands/prod-garam-masala.jpg"
+  },
+  {
+    "id": "prod-wheat-flour",
+    "name": "Aashirvaad Select Sharbati Atta - 5 kg",
+    "brand": "Aashirvaad",
+    "unit": "5 kg",
+    "source": "https://www.bigbasket.com/pd/204629/aashirvaad-select-atta-5-kg-pouch/",
+    "image": "https://www.bbassets.com/media/uploads/p/l/204629_24-aashirvaad-select-atta.jpg",
+    "localImage": "/images/grocery-brands/prod-wheat-flour.jpg"
+  },
+  {
+    "id": "prod-desi-ghee",
+    "name": "Amul Cow Ghee - 1 L Tin",
+    "brand": "Amul",
+    "unit": "1 L Tin",
+    "source": "https://www.bigbasket.com/pd/40046230/amul-amul-cow-ghee-1-l-1-l-tin/",
+    "image": "https://www.bbassets.com/media/uploads/p/l/40046230_6-amul-amul-cow-ghee-1-l.jpg",
+    "localImage": "/images/grocery-brands/prod-desi-ghee.jpg"
+  },
+  {
+    "id": "prod-mustard-oil-kacchi-ghani",
+    "name": "Fortune Kachi Ghani Mustard Oil - 500 ml",
+    "brand": "Fortune",
+    "unit": "500 ml Bottle",
+    "source": "https://www.bigbasket.com/pd/276764/fortune-fortune-premium-kachi-ghani-pure-mustard-oil-500-ml-bottle/",
+    "image": "https://www.bbassets.com/media/uploads/p/l/276764_13-fortune-fortune-premium-kachi-ghani-pure-mustard-oil.jpg",
+    "localImage": "/images/grocery-brands/prod-mustard-oil-kacchi-ghani.jpg"
+  },
+  {
+    "id": "prod-cadbury-celebrations",
+    "name": "Cadbury Celebrations Rich Dry Fruit Collection - 180 g",
+    "brand": "Cadbury",
+    "unit": "180 g",
+    "source": "https://www.bigbasket.com/pd/40372591/cadbury-celebrations-rich-dry-fruit-collection-gift-pack-truffles-180-g/",
+    "image": "https://www.bbassets.com/media/uploads/p/l/40372591_2-cadbury-celebrations-rich-dry-fruit-collection-gift-pack-truffles.jpg",
+    "localImage": "/images/grocery-brands/prod-cadbury-celebrations.jpg"
+  },
+  {
+    "id": "prod-amul-dark-chocolate",
+    "name": "Amul Bitter Chocolate 75% Cocoa - 150 g",
+    "brand": "Amul",
+    "unit": "150 g",
+    "source": "https://www.bigbasket.com/pd/40055078/amul-bitter-chocolate-75-rich-in-cocoa-150-g/",
+    "image": "https://www.bbassets.com/media/uploads/p/l/40055078_2-amul-bitter-chocolate-75-rich-in-cocoa.jpg",
+    "localImage": "/images/grocery-brands/prod-amul-dark-chocolate.jpg"
+  },
+  {
+    "id": "prod-taj-mahal-tea",
+    "name": "Brooke Bond Taj Mahal Tea - 500 g",
+    "brand": "Brooke Bond",
+    "unit": "500 g",
+    "source": "https://www.bigbasket.com/pd/266564/taj-mahal-tea-500-g/",
+    "image": "https://www.bbassets.com/media/uploads/p/l/266564_16-taj-mahal-tea.jpg",
+    "localImage": "/images/grocery-brands/prod-taj-mahal-tea.jpg"
+  },
+  {
+    "id": "prod-nescafe-classic-coffee",
+    "name": "Nescafe Classic Instant Coffee - 200 g Pouch",
+    "brand": "Nescafe",
+    "unit": "200 g Pouch",
+    "source": "https://www.bigbasket.com/pd/249581/nescafe-classic-100-pure-instant-coffee-200-g-stabilo/",
+    "image": "https://www.bbassets.com/media/uploads/p/l/249581_11-nescafe-classic-100-pure-instant-coffee.jpg",
+    "localImage": "/images/grocery-brands/prod-nescafe-classic-coffee.jpg"
+  },
+  {
+    "id": "prod-amla-aloe-vera-juice",
+    "name": "Dabur Amla Juice - 1 L",
+    "brand": "Dabur",
+    "unit": "1 L",
+    "source": "https://www.bigbasket.com/pd/40195119/dabur-amla-ayurvedic-juice-1-l/",
+    "image": "https://www.bbassets.com/media/uploads/p/l/40195119_1-dabur-amla-ayurvedic-juice.jpg",
+    "localImage": "/images/grocery-brands/prod-amla-aloe-vera-juice.jpg"
+  },
+  {
+    "id": "prod-horlicks-health-drink",
+    "name": "Horlicks Classic Malt Nutrition Drink - 1 kg",
+    "brand": "Horlicks",
+    "unit": "1 kg",
+    "source": "https://www.bigbasket.com/pd/40360527/horlicks-classic-malt-nutrition-drink-1-kg/",
+    "image": "https://www.bbassets.com/media/uploads/p/l/40360527_1-horlicks-classic-malt-nutrition-drink.jpg",
+    "localImage": "/images/grocery-brands/prod-horlicks-health-drink.jpg"
+  },
+  {
+    "id": "prod-swadeshi-chana-sattu",
+    "name": "Jalan Chana Sattu - 1 kg",
+    "brand": "Jalan",
+    "unit": "1 kg",
+    "source": "https://www.bigbasket.com/pd/40274783/jalan-chana-sattu-100-natural-premium-high-in-fibre-1-kg/",
+    "image": "https://www.bbassets.com/media/uploads/p/l/40274783_2-jalan-chana-sattu-100-natural-premium-high-in-fibre.jpg",
+    "localImage": "/images/grocery-brands/prod-swadeshi-chana-sattu.jpg"
+  },
+  {
+    "id": "prod-vitamin-c-effervescent",
+    "name": "Fast&Up Charge Orange Vitamin C Tablets - 20 tablets",
+    "brand": "Fast&Up",
+    "unit": "20 tablets",
+    "source": "https://www.bigbasket.com/pd/40132330/fastup-charge-effervescent-tablets-with-natural-vitamin-c-zinc-for-immunity-orange-flavour-20-pcs/",
+    "image": "https://www.bbassets.com/media/uploads/p/l/40132330_12-fastup-charge-effervescent-tablets-with-natural-vitamin-c-zinc-for-immunity-orange-flavour.jpg",
+    "localImage": "/images/grocery-brands/prod-vitamin-c-effervescent.jpg"
+  },
+  {
+    "id": "prod-surf-excel-liquid-detergent",
+    "name": "Surf Excel Matic Express Clean & Fresh Liquid - 2 L",
+    "brand": "Surf Excel",
+    "unit": "2 L",
+    "source": "https://www.bigbasket.com/pd/40348859/surf-excel-matic-express-clean-fresh-liquid-detergent-2-l/",
+    "image": "https://www.bbassets.com/media/uploads/p/l/40348859_3-surf-excel-matic-express-clean-fresh-liquid-detergent.jpg",
+    "localImage": "/images/grocery-brands/prod-surf-excel-liquid-detergent.jpg"
+  },
+  {
+    "id": "prod-california-almonds",
+    "name": "Ministry of Nuts California Almonds - 500 g",
+    "brand": "Ministry of Nuts",
+    "unit": "500 g",
+    "source": "https://ministryofnuts.in/products/california-almonds-500g",
+    "image": "https://cdn.shopify.com/s/files/1/0585/4376/7652/files/Almonds-1.webp?v=1786029812",
+    "localImage": "/images/grocery-brands/prod-california-almonds.webp"
+  },
+  {
+    "id": "prod-kashmiri-walnuts",
+    "name": "Ministry of Nuts Premium Walnuts - 200 g",
+    "brand": "Ministry of Nuts",
+    "unit": "200 g",
+    "source": "https://ministryofnuts.in/products/premium-walnuts-200g",
+    "image": "https://cdn.shopify.com/s/files/1/0585/4376/7652/files/walnutpdp200g.jpg?v=1786031406",
+    "localImage": "/images/grocery-brands/prod-kashmiri-walnuts.jpg"
+  },
+  {
+    "id": "prod-w320-cashews",
+    "name": "Ministry of Nuts Whole Cashews - 500 g",
+    "brand": "Ministry of Nuts",
+    "unit": "500 g",
+    "source": "https://ministryofnuts.in/products/whole-cashews-kaju-500g",
+    "image": "https://cdn.shopify.com/s/files/1/0585/4376/7652/files/cashew_01.webp?v=1786029767",
+    "localImage": "/images/grocery-brands/prod-w320-cashews.webp"
+  },
+  {
+    "id": "prod-mango-pickle-traditional",
+    "name": "Sri Sri Tattva Mango Pickle - 500 g",
+    "brand": "Sri Sri Tattva",
+    "unit": "500 g",
+    "source": "https://www.srisritattva.com/products/mango-pickle-500-g",
+    "image": "https://cdn.shopify.com/s/files/1/0264/9980/9339/files/MangoPickle500g.jpg?v=1747117982",
+    "localImage": "/images/grocery-brands/prod-mango-pickle-traditional.jpg"
+  },
+  {
+    "id": "prod-tulsi-green-tea",
+    "name": "Organic India Tulsi Ginger - 25 Tea Bags",
+    "brand": "Organic India",
+    "unit": "25 Tea Bags",
+    "source": "https://organicindia.com/products/tulsi-ginger",
+    "image": "https://cdn.shopify.com/s/files/1/0663/6286/8029/files/Tulsi_Ginger_eac0b09a-8f9a-45a0-88c0-a15633e68b95.png?v=1767690436",
+    "localImage": "/images/grocery-brands/prod-tulsi-green-tea.png"
+  },
+  {
+    "id": "prod-chia-seeds-organic",
+    "name": "True Elements Raw Chia Seeds - 250 g",
+    "brand": "True Elements",
+    "unit": "250 g",
+    "source": "https://true-elements.com/products/raw-chia-seeds-250gm",
+    "image": "https://cdn.shopify.com/s/files/1/0655/6414/7950/files/1_0ff29611-6bcc-4f70-b3fe-52daca81bff9.png?v=1784370771",
+    "localImage": "/images/grocery-brands/prod-chia-seeds-organic.png"
+  },
+  {
+    "id": "prod-roasted-flax-seeds",
+    "name": "True Elements Raw Flax Seeds - 500 g",
+    "brand": "True Elements",
+    "unit": "500 g",
+    "source": "https://true-elements.com/products/raw-flax-seeds-500gm",
+    "image": "https://cdn.shopify.com/s/files/1/0655/6414/7950/files/6_d8a50f42-b59a-4c4a-aa90-2b6bdaf98dee.jpg?v=1784372828",
+    "localImage": "/images/grocery-brands/prod-roasted-flax-seeds.jpg"
+  },
+  {
+    "id": "prod-on-gold-whey-protein",
+    "name": "ON Gold Standard Whey Double Rich Chocolate - 907 g",
+    "brand": "Optimum Nutrition",
+    "unit": "907 g",
+    "source": "https://www.bigbasket.com/pd/40131691/optimum-nutrition-gold-standard-100-whey-protein-isolate-double-rich-chocolate-muscle-recovery-907-g-tub/",
+    "image": "https://www.bbassets.com/media/uploads/p/l/40131691_2-optimum-nutrition-gold-standard-100-whey-protein-isolate-double-rich-chocolate-muscle-recovery.jpg",
+    "localImage": "/images/grocery-brands/prod-on-gold-whey-protein.jpg"
+  },
+  {
+    "id": "prod-tata-1mg-multivitamin",
+    "name": "Tata 1mg Men's Multivitamins - 60 Tablets",
+    "brand": "Tata 1mg",
+    "unit": "60 Tablets",
+    "source": "https://www.1mg.com/otc/men-s-multivitamins-tablet-daily-support-for-energy-immunity-by-tata-1mg-otc1131246",
+    "image": "https://onemg.gumlet.io/l_watermark_346,w_480,h_480/a_ignore,w_480,h_480,c_fit,q_auto,f_auto/88d7d31882ac4b3d9da56deef8b73222.jpg",
+    "localImage": "/images/grocery-brands/prod-tata-1mg-multivitamin.jpg"
+  },
+  {
+    "id": "prod-first-aid-medical-emergency-kit",
+    "name": "Tata 1mg First Aid Kit - Waterproof Carry Pouch",
+    "brand": "Tata 1mg",
+    "unit": "1 Kit",
+    "source": "https://www.1mg.com/otc/first-aid-kit-compact-medical-kit-for-home-travel-use-with-waterproof-carry-pouch-by-tata-1mg-otc981369",
+    "image": "https://onemg.gumlet.io/l_watermark_346,w_480,h_480/a_ignore,w_480,h_480,c_fit,q_auto,f_auto/pharmacy-production-rxs%2F1739513083_crop_270.png",
+    "localImage": "/images/grocery-brands/prod-first-aid-medical-emergency-kit.png"
+  },
+  {
+    "id": "prod-dettol-antiseptic-liquid",
+    "name": "Dettol Antiseptic Liquid Original - 1 L",
+    "brand": "Dettol",
+    "unit": "1 L",
+    "source": "https://www.dettol.co.in/personal-hygiene/antiseptics/dettol-antiseptic-liquid-original-1000ml/",
+    "image": "https://www.dettol.co.in/static/b23c832d5755319c9e9509ec30d95a29/e1368/dal-1l.png",
+    "localImage": "/images/grocery-brands/prod-dettol-antiseptic-liquid.png"
+  }
+]

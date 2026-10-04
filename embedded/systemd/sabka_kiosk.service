@@ -1,0 +1,16 @@
+[Unit]
+Description=Sabka Bazzar Assisted Kiosk Help Event Daemon
+After=network.target
+Documentation=https://github.com/sabka-bazzar/embedded-kiosk
+
+[Service]
+Type=simple
+User=root
+ExecStart=/usr/local/bin/sabka_help_simulator
+Restart=always
+RestartSec=3
+StandardOutput=journal
+StandardError=journal
+
+[Install]
+WantedBy=multi-user.target

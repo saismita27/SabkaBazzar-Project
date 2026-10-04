@@ -1,0 +1,6 @@
+{
+  "name": "Sabka Bazzar — Multilingual Accessible Shopping & Embedded Linux System",
+  "description": "An accessible, multilingual Indian e-commerce platform and embedded Linux kiosk system featuring local name transliteration, voice assistance, order state tracking, Linux character device driver simulation (/dev/sabka_help), and C++ system programming.",
+  "requestFramePermissions": ["microphone"],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

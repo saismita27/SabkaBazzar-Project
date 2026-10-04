@@ -1,0 +1,3 @@
+# Udev rule for Sabka Bazzar Kiosk Help Character Device
+# Grants read/write permissions to standard users so that kiosk processes can listen to events
+KERNEL=="sabka_help", SUBSYSTEM=="sabka_kiosk_class", MODE="0666", GROUP="dialout"
