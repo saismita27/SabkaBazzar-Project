@@ -1,3 +1,4 @@
+import { useCppStore, cppEnabled } from '../backend/useCppStore';
 import React, { createContext, useContext, useState, useEffect, useRef } from 'react';
 import { 
   LanguageCode, 
@@ -48,7 +49,7 @@ interface AppContextType {
   // Orders
   orders: Order[];
   placeOrder: (shippingAddress: Address, paymentMethod: 'COD' | 'UPI' | 'Card', idempotencyToken: string) => Promise<Order>;
-  cancelOrder: (orderId: string) => boolean;
+  cancelOrder: (orderId: string) => boolean | Promise<boolean>;
   advanceOrderState: (orderId: string, nextState: OrderState) => void;
 
   // User & Address
@@ -486,6 +487,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
   // Hardware Button Trigger Simulation
   const triggerSimulatedKioskEvent = (source = 'BROWSER_SIMULATOR') => {
+    if (cppEnabled) cppStore.pairKiosk();
     const evt: KioskHardwareEvent = {
       eventId: Date.now(),
       kioskId: 101,
@@ -540,6 +542,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     return text;
   };
 
+  const cppStore = useCppStore(language, selectedState, event => {setKioskHardwareEvent(event);setIsHelpModalOpen(true);});
   return (
     <AppContext.Provider
       value={{
@@ -605,7 +608,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         selectedProductDetail,
         setSelectedProductDetail,
         speakText,
-        t
+        t, ...(cppEnabled ? cppStore : {})
       }}
     >
       {children}

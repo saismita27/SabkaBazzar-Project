@@ -34,7 +34,7 @@ export const ProductModal: React.FC = () => {
   useEffect(() => setVariant(selectedProductDetail?.variants?.[0]), [selectedProductDetail]);
   if (!selectedProductDetail) return null;
   const p = selectedProductDetail;
-  const isInCart = cart.some(item => item.product.id === p.id && item.selectedVariant === variant && item.quantity > 0);
+  const isInCart = cart.some(item => item.product.id === p.id && (item.selectedVariant || undefined) === variant && item.quantity > 0);
   const isFav = isInWishlist(p.id);
   const discountPercent = Math.round(((p.mrp - p.price) / p.mrp) * 100);
 

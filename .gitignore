@@ -10,3 +10,5 @@ embedded/**/build/
 *.o
 *.ko
 *.mod*
+*.sqlite*
+backend/build/

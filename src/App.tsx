@@ -1,4 +1,5 @@
-import React, { useMemo, useState } from 'react';
+import { cppEnabled } from './backend/useCppStore';
+import React, { useMemo, useState, useEffect } from 'react';
 import { AppProvider, useApp } from './context/AppContext';
 import { Header } from './components/Header';
 import { EasyModeBanner } from './components/EasyModeBanner';
@@ -53,8 +54,19 @@ const MainContent: React.FC = () => {
     t 
   } = useApp();
 
+  const [remoteProducts, setRemoteProducts] = useState(PRODUCTS);
+  useEffect(() => {
+    if (!cppEnabled) return;
+    const controller = new AbortController();
+    const params = new URLSearchParams({q: searchQuery, category: selectedCategory || '', sub: selectedSubCategory || ''});
+    fetch('/api/products?' + params, {signal: controller.signal})
+      .then(r => {if (!r.ok) throw new Error('Catalogue unavailable'); return r.json();})
+      .then(setRemoteProducts).catch(e => {if (e.name !== 'AbortError') console.error(e);});
+    return () => controller.abort();
+  }, [searchQuery, selectedCategory, selectedSubCategory]);
   // Search & Filtering Engine with Vernacular Alias Matching
   const filteredProducts = useMemo(() => {
+    if (cppEnabled) return remoteProducts;
     let result = PRODUCTS;
 
     if (selectedCategory) {
@@ -112,11 +124,11 @@ const MainContent: React.FC = () => {
     }
 
     return result;
-  }, [selectedCategory, selectedSubCategory, searchQuery, language]);
+  }, [selectedCategory, selectedSubCategory, searchQuery, language, remoteProducts]);
 
   return (
     <div className="min-h-screen bg-slate-50 flex flex-col">
-      <Header /><div className="bg-amber-50 text-amber-950 text-xs text-center px-4 py-2 border-b border-amber-200">Training demo: browser-local profiles, orders and support. Sample prices and ratings are unverified. No real payments or deliveries.</div>
+      <Header /><div className="bg-amber-50 text-amber-950 text-xs text-center px-4 py-2 border-b border-amber-200">Training demo: {cppEnabled ? 'C++ / SQLite shopping backend' : 'browser-local profiles, orders and support'}. Sample prices and ratings are unverified. No real payments or deliveries.</div>
       <EasyModeBanner />
       <CategoryNav />
 

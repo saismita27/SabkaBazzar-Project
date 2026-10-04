@@ -1,3 +1,4 @@
+import { cppEnabled } from '../backend/useCppStore';
 import React, { useState, useRef, useEffect } from 'react';
 import { 
   X, 
@@ -129,7 +130,7 @@ export const CheckoutModal: React.FC = () => {
               {t('orderSuccess')}
             </h3>
             <p className="text-sm text-slate-600 mb-6">
-              Your simulated order is saved in this browser. No payment, dispatch or delivery takes place.
+              Your simulated order is saved {cppEnabled ? 'in SQLite by the C++ server' : 'in this browser'}. No payment, dispatch or delivery takes place.
             </p>
 
             <div className="bg-slate-50 border border-slate-200 rounded-2xl p-4 max-w-md mx-auto mb-6 text-left text-xs space-y-2">
@@ -337,7 +338,7 @@ export const CheckoutModal: React.FC = () => {
               <div className="flex items-center gap-2 mt-3 p-2.5 bg-amber-50 border border-amber-200 rounded-xl text-[11px] text-amber-800">
                 <AlertCircle className="w-4 h-4 text-amber-600 flex-shrink-0" />
                 <span>
-                  <strong>Academic Demonstration Notice:</strong> No real bank credentials or card numbers are collected. This browser-only checkout prevents repeated clicks; it is not a server transaction.
+                  <strong>Academic Demonstration Notice:</strong> No real bank credentials or card numbers are collected. {cppEnabled ? 'The C++ server saves the order and stock changes in one SQLite transaction.' : 'This browser-only checkout prevents repeated clicks; it is not a server transaction.'}
                 </span>
               </div>
             </div>

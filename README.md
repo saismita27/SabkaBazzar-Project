@@ -1,62 +1,89 @@
-# Sabka Bazaar — repaired sample
+# Sabka Bazaar — C++ Linux shopping backend and multilingual storefront
 
-This copy preserves the supplied React storefront design and fixes startup and several functional defects. It is a browser-local shopping demonstration with separate C/C++ Linux exercises, not a completed secure C++ ecommerce backend.
+## Current implementation (October 4, 2026)
 
-## Run on Windows
-Use Node.js 22.12 or newer (22.20.0 was tested).
+The existing visual storefront is preserved. The new **C++17 Linux backend** performs catalogue search, cart validation, price calculations, transactional checkout, stock changes, order transitions, wishlist, address and support persistence. SQLite is authoritative in C++ mode.
+
+**This repository is still mixed-language:** the UI uses React/TypeScript, HTML and CSS. It does not satisfy a strict “only C/C++” rule without a trainer-approved UI exception. No 80% claim is made. Profiles and administrator controls are local demonstrations, not production authentication.
+
+## Run this version
+
+From this project directory in VS Code PowerShell (Node 22.12+):
 
 ```powershell
 npm ci
-npm run dev
+npm run build:cpp
+wsl -d Ubuntu
 ```
 
-Open the localhost address printed by Vite, normally http://127.0.0.1:3000. Stop with Ctrl+C. Scripts invoke Vite through Node directly to avoid the Windows command shim breaking on ampersands in folder names. No `--force` or `--legacy-peer-deps` is required.
-
-```powershell
-npm run lint
-npm run build
-npm run preview
-```
-
-## What was repaired
-
-- Removed incompatible direct esbuild dependency and unused server/AI dependencies; regenerated lockfile.
-- Windows-safe launch commands, loopback-only server, correct Node requirement.
-- 44 missing image paths replaced with a local labelled placeholder; original photos retained. Missing paths are listed in missing-photo-paths.txt. Image fallbacks cannot loop indefinitely.
-- Wishlist now opens a saved-products panel rather than the cart.
-- Product variant selection and independent cart quantity/removal per variant.
-- Removed reverse alias matching that incorrectly returned atta for tej patta; Unicode normalization added to query/alias matching.
-- Voice session stored in a React ref and aborted on close; microphone starts only on explicit click. Recognized text can be edited before searching; typing remains available.
-- Checkout validates demo address/quantity, keeps one token per attempt, catches errors, uses unique IDs, and retains the order total after clearing the cart.
-- Orders start empty; support tickets and addresses persist in browser storage. Signing out clears the current local demo data. Demo state uses a separate storage namespace.
-- Order advancement accepts only the next lifecycle state.
-- Removed unused password collection and misleading verified-account/reset claims. Local profiles are explicitly labelled simulated.
-- Safer C++ shutdown: sigwait in the threaded worker, signal-safe flag in the listener; private per-user FIFO directory. Event log no longer claims browser delivery.
-- Driver source fixes: serialized reads, short-buffer rejection, busy-event handling, modern class_create signature. No module was loaded.
-
-## Linux exercises
-
-In Ubuntu from this directory:
+Then in Ubuntu:
 
 ```bash
-bash embedded/check-userspace.sh
+cd '/mnt/c/Users/saism/OneDrive/Desktop/wipro project/sabka-bazzar-multilingual accessible shopping'
+cmake -S backend -B backend/build -DCMAKE_BUILD_TYPE=Debug
+cmake --build backend/build -j2
+backend/build/sabka_backend backend/demo.sqlite backend/catalogue.json dist --fifo
 ```
 
-This builds both C++17 programs, checks a FIFO event and sends SIGTERM to the test processes. Neither connects to the React browser. The FIFO is /tmp/sabka-help-<uid>/help.fifo; the log is events.log in that private directory.
+Open **http://127.0.0.1:8080/**. Keep the Ubuntu terminal running. Ctrl+C stops the server gracefully. Do not run two servers on port 8080.
 
-The driver is educational, write-triggered, with one pending event. It has no GPIO interrupt handler. Build only on a compatible Linux host with matching headers, in a path without spaces (kernel kbuild limitation). Missing headers cause a failed build, not a success message. Loading a module remains a separate manual action; no kernel, boot, service or security setting was changed.
+On a native Linux machine with Node 22.12+ installed, the frontend build commands also run there. Do not copy Windows node_modules to Linux: install dependencies on the target platform.
 
-## Important remaining work
+Existing Ubuntu dependencies: g++ 13.3, CMake 3.28, cpp-httplib 0.14.3, SQLite 3.45.1, libsodium 1.0.18, nlohmann-json 3.11.3, ICU 74.2. For a fresh Ubuntu installation:
 
-- No C++ HTTP backend, SQLite checkout transactions, password verification, secure sessions, protected admin authorization or cross-user security in this sample.
-- No connection from the C++ listener to a paired browser session; browser help is a local simulation.
-- The catalogue has 160 sample entries, not 200+ per subcategory. Prices, specifications, ratings, discounts, image matches and rights have not been independently verified. Existing photos came from the supplied ZIP.
-- Eight language options are present; translations, accessibility conformance, speech availability and mobile behavior need further review. This is not a WCAG compliance claim.
-- Payments, tracking, callbacks and the keyword FAQ are demonstrations. No SMS, real calls, delivery, refunds or live AI agent.
-- Existing stage documents describe plans and contain unverified claims. They are not evidence of completed testing; this README and REPAIR_VERIFICATION.md describe the actual repair status.
+```bash
+sudo apt update
+sudo apt install build-essential cmake pkg-config libcpp-httplib-dev libsqlite3-dev libsodium-dev nlohmann-json3-dev libicu-dev curl
+```
 
-## References
+## Demonstrate Linux help events
 
-- Vite requirements: https://vite.dev/guide/
-- Linux 6.6 class_create API: https://github.com/torvalds/linux/blob/v6.6/include/linux/device/class.h
-- Linux wait queues: https://docs.kernel.org/driver-api/basics.html
+1. Start with --fifo as above. This explicitly selects a **userspace simulator**.
+2. In the intended browser, click the existing **Simulate Kiosk Hardware Help** footer button once. In C++ mode this also pairs that browser session with kiosk 101.
+3. Close the help panel.
+4. In a second Ubuntu terminal:
+
+```bash
+printf 'HELP\n' > /tmp/sabka-backend-$(id -u)/help.fifo
+```
+
+The C++ worker waits with poll(), reads the FIFO, persists an event to SQLite, and the paired browser's polling opens Help. Other sessions do not receive it. Pairing is one active session, last explicit pairing wins, and resets when the server restarts. Already delivered events may reappear on page reload; acknowledgement persistence is not implemented.
+
+To use the real driver on a compatible Linux host, replace --fifo with /dev/sabka_help. The existing C driver is write-triggered educational hardware simulation, not genuine GPIO. The driver **has not been built or loaded on this WSL kernel** because the matching build tree is missing. Do not claim the FIFO test validates kernel behaviour.
+
+## Repeat tests
+
+Stop the demo first, then:
+
+```bash
+bash backend/test.sh
+```
+
+The C++ smoke client checks invalid quantities, checkout, duplicate prevention, stock deduction/restoration, invalid transitions, session isolation, request-header protection, alias search, FIFO session targeting, graceful termination and order/support persistence after restart. Temporary test databases are outside the project; the real demo database is not touched.
+
+## Code map
+
+- backend/server.cpp: HTTP handlers, SQLite prepared statements, RAII cleanup, serialized transactions and business rules.
+- backend/search.hpp: ICU Unicode NFKC case-folding and exact/prefix/substring ranking.
+- backend/help_bridge.hpp: Linux file descriptors, explicit FIFO/device mode, poll/read, worker lifetime and shutdown.
+- backend/smoke.cpp: C++ integration client.
+- backend/catalogue.json: existing 160 products, with original images and sample prices.
+- src/backend/useCppStore.ts: thin UI request adapter and help-event polling.
+- embedded/driver/sabka_help_driver.c: C device driver source with wait queue, poll and copy_to_user.
+- docs/CPP_MIGRATION.md: architecture, evidence and limitations.
+
+## Design and limits
+
+Sessions use a random libsodium-generated HttpOnly, SameSite cookie. This isolates browser sessions, but does not verify identity. There is no password authentication or protected administrator role. Support replies and order advancement remain simulation controls scoped to the same session. Loopback-only, for a local demo; do not expose this server publicly.
+
+The server takes product IDs and quantities, looks up prices itself, uses integer paise for totals, and commits stock plus order/session state together. A repeated checkout key returns the existing result; changed address/payment using that key is rejected. Tax is an illustrative rounded 5%, not a verified tax schedule.
+
+Client records are JSON documents inside SQLite; product stock is a separate table. This is intentionally a small prototype, not a fully normalized commerce schema. There are no real payments, deliveries, calls or AI agents.
+
+The browser UI's sample stock labels can lag other sessions; the server validates stock at cart changes and checkout. The original browser-only mode remains available with npm run dev. Its state is separate from the C++ database. Historic repair/stage documents describe earlier work and plans, not proof of current completion.
+
+The catalogue's prices/ratings are demonstration values, not verified live prices. Photo references are in docs and public/photo-credits.html. Language coverage and accessibility require human review.
+
+## Backup
+
+The original uploaded site is preserved on local branch backup/react-before-cpp. Generated binaries, databases, dist, node_modules and secrets are excluded from Git.

@@ -63,9 +63,9 @@ export const OrderTrackingModal: React.FC = () => {
   const isCancelled = currentOrder.status === 'Cancelled';
   const canCancel = currentOrder.status === 'Placed' || currentOrder.status === 'Confirmed';
 
-  const handleCancel = () => {
+  const handleCancel = async () => {
     if (window.confirm(t('confirmCancel'))) {
-      const ok = cancelOrder(currentOrder.id);
+      const ok = await cancelOrder(currentOrder.id);
       if (ok) {
         alert(t('cancelSuccess'));
       } else {
