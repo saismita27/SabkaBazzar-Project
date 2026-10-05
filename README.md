@@ -25,7 +25,7 @@ cmake --build backend/build -j2
 backend/build/sabka_backend backend/demo.sqlite backend/catalogue.json dist --fifo
 ```
 
-Open **http://127.0.0.1:8080/**. Keep the Ubuntu terminal running. Ctrl+C stops the server gracefully. Do not run two servers on port 8080.
+Open **http://127.0.0.1:3000/**. Keep the Ubuntu terminal running. Ctrl+C stops the server gracefully. Do not run two servers on port 8080.
 
 On a native Linux machine with Node 22.12+ installed, the frontend build commands also run there. Do not copy Windows node_modules to Linux: install dependencies on the target platform.
 
