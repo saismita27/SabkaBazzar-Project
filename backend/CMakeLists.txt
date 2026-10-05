@@ -51,3 +51,8 @@ target_compile_options(sabka_auth_smoke PRIVATE -Wall -Wextra -Wpedantic)
 add_executable(sabka_voice_smoke voice_smoke.cpp)
 target_link_libraries(sabka_voice_smoke PRIVATE PkgConfig::HTTP)
 target_compile_options(sabka_voice_smoke PRIVATE -Wall -Wextra -Wpedantic)
+
+add_executable(sabka_search_test search_test.cpp)
+target_link_libraries(sabka_search_test PRIVATE ICU::uc nlohmann_json::nlohmann_json)
+target_compile_options(sabka_search_test PRIVATE -Wall -Wextra -Wpedantic)
+add_test(NAME catalogue_search COMMAND sabka_search_test)

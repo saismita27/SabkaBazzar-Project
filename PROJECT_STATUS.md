@@ -1,4 +1,4 @@
-# Project Status — development, October 5, 2026
+# Project Status — development, October 6, 2026
 
 ## Current state
 
@@ -44,3 +44,7 @@ build/backend/sabka_backend backend/demo.sqlite backend/catalogue.json public --
 
 Open http://127.0.0.1:8080/. Use the existing database path consistently; the earlier no-argument launch used sabka.sqlite. Do not switch databases unintentionally. Stop the demo before `SABKA_BUILD_DIR=build/backend bash backend/test.sh`. No npm or Qt is required. Never change protected Git branches.
 Latest verification: all shopping/account/FIFO/restart regression checks and CTest passed again. Native read-aloud generated WAV audio for en, hi and or; rejected missing CSRF and invalid products. Evidence directory /tmp/tmp.YqBm9t6Ji1 is temporary. Microphone capture and real kernel module remain NOT TESTED.
+
+## October 6 search checkpoint
+
+Shared C++ search ranking now prioritizes normalized canonical names, literal exact aliases, normalized aliases, prefixes, substrings, then brand discovery. Browser and JSON API use the same function. Category/subcategory and selected price sort persist in sorting forms. New compiled fixtures cover ranking tiers, Hindi/Odia aliases, Unicode compatibility, whitespace and no-match cases. All eleven executables built; both CTest checks and the full shopping/account/FIFO/restart integration suite passed. Evidence: /tmp/tmp.RSKSjDcp7N (temporary). Microphone tools and matching kernel build tree are still absent.

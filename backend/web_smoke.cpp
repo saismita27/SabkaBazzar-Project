@@ -29,6 +29,7 @@ int main(){try{
  r=c.Get("/account",h);check(r&&r->body.find("lang='or'")!=std::string::npos,"Odia selection available before login");
  post({{"op","preferences"},{"language","en"},{"back","/"}});
  r=c.Get("/?category=cat-electronics&sub=Laptops",h);check(r&&r->body.find("Subcategory")!=std::string::npos&&r->body.find("Laptops")!=std::string::npos,"department subcategory navigation");
+ r=c.Get("/?category=cat-electronics&sub=Laptops&sort=low",h);check(r&&r->body.find("name='sub' value='Laptops'")!=std::string::npos&&r->body.find("value='low' selected")!=std::string::npos,"sorting retains subcategory and selection");
  r=c.Get("/voice",h);check(r&&r->status==200&&r->body.find("PROTOTYPE")!=std::string::npos,"honest voice entry point");
  auto denied=c.Post("/voice/record",h,httplib::Params{{"csrf",csrf}});check(denied&&denied->status==403,"voice capture requires explicit consent without activating microphone");
  post({{"op","address"},{"fullName","Demo"},{"addressLine","Saved street"},{"city","Demo"},{"pincode","751001"},{"mobile","9000000000"},{"back","/account"}});

@@ -161,14 +161,12 @@ int main(int argc,char** argv){
    std::lock_guard<std::mutex> lock(store.mutex);
    Statement q(store.db,"SELECT data,stock FROM products ORDER BY rowid");
    std::vector<std::pair<int,J>> matches;
-   std::string query=normalized(req.get_param_value("q")),category=req.get_param_value("category"),sub=req.get_param_value("sub");
+   std::string query=req.get_param_value("q"),category=req.get_param_value("category"),sub=req.get_param_value("sub");
    while(q.step()==SQLITE_ROW){
     auto p=J::parse(q.str(0));p["stock"]=sqlite3_column_int64(q.p,1);
     if(!category.empty()&&p.value("categoryId",std::string())!=category)continue;
     if(!sub.empty()&&p.value("subCategory",std::string())!=sub)continue;
-    int score=query.empty()?1:0;
-    auto rank=[&](const std::string& text){auto n=normalized(text);if(n==query)score=100;else if(n.rfind(query,0)==0)score=std::max(score,80);else if(n.find(query)!=std::string::npos)score=std::max(score,60);};
-    if(!query.empty()){for(auto& name:p["name"])rank(name.get<std::string>());for(auto& alias:p["aliases"])rank(alias["term"]);rank(p["brand"]);}
+    int score=product_search_score(p,query);
     if(score)matches.emplace_back(score,p);
    }
    std::stable_sort(matches.begin(),matches.end(),[](auto& a,auto& b){return a.first>b.first;});
