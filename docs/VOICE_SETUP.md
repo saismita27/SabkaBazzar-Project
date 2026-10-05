@@ -47,4 +47,27 @@ build/backend/sabka_voice_smoke "$HOME/.cache/sabka-whisper-cpp/samples/jfk.wav"
 
 Run that against a test server with a disposable database. It never captures microphone audio.
 
-Official references: [whisper.cpp](https://github.com/ggml-org/whisper.cpp) and [ALSA PCM documentation](https://www.alsa-project.org/alsa-doc/alsa-lib/pcm.html). Speech accuracy and latency vary. Read-aloud/TTS is not implemented.
+Official references: [whisper.cpp](https://github.com/ggml-org/whisper.cpp) and [ALSA PCM documentation](https://www.alsa-project.org/alsa-doc/alsa-lib/pcm.html). Speech accuracy and latency vary. Read-aloud uses the separate local native eSpeak NG integration below.
+
+## Local read-aloud (verified October 5)
+
+Product cards and product details offer Read aloud. C++ verifies the session form token, reads the product name and description in the selected English/Hindi/Odia language, invokes eSpeak NG without a shell and returns a standard HTML audio player. Press Play to listen; there is no autoplay or JavaScript. This does not access the microphone. Temporary text/audio are removed after the response. Synthesis is serialized and has a 20-second timeout and bounded input/output.
+
+Observed: real WAV generation passed for en, hi and or; CSRF rejection and missing-product rejection passed. Pronunciation and translation quality still need human review. This is synthetic speech, not a natural human recording. Odia synthesis is supported even though Odia recognition is unavailable.
+
+On another Ubuntu machine, install `espeak-ng` using the system package manager. The C++ server automatically uses `/usr/bin/espeak-ng`. Optional overrides are `SABKA_ESPEAK_BIN` (absolute executable) and `SABKA_ESPEAK_DATA` (directory containing espeak-ng-data).
+
+This machine instead uses a native build in the user's cache, with no system-package changes:
+
+```bash
+git clone https://github.com/espeak-ng/espeak-ng.git "$HOME/.cache/sabka-espeak-ng"
+git -C "$HOME/.cache/sabka-espeak-ng" checkout ba90c8e9f440ad544f674a790bb5f53878b6ffc5
+cmake -S "$HOME/.cache/sabka-espeak-ng" -B "$HOME/.cache/sabka-espeak-ng/build" -DUSE_LIBPCAUDIO=OFF -DUSE_LIBSONIC=OFF -DUSE_MBROLA=OFF -DENABLE_TESTS=OFF -DCMAKE_BUILD_TYPE=Release
+cmake --build "$HOME/.cache/sabka-espeak-ng/build" -j2
+# Against a disposable test server:
+build/backend/sabka_voice_smoke --tts
+```
+
+These external-cache Git commands never apply to the project repository. Do not overwrite an existing cache. Missing synthesis dependencies produce an honest unavailable message and retain readable product text. The application itself still builds without this optional dependency.
+
+Official implementation/build reference: https://github.com/espeak-ng/espeak-ng

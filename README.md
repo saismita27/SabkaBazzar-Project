@@ -89,3 +89,5 @@ See [restoration audit](docs/RESTORATION_AUDIT.md) for current feature parity an
 Buy Now checks out one selected product without consuming the existing cart. Saved addresses can be entered under Account and selected at checkout. Checkout, tracking and support controls include local Hindi/Odia text; translations still require human review and some technical/admin labels remain English. Product editing is protected by the existing server-side administrator role.
 
 Voice Search supports local WAV transcription through whisper.cpp, with review before searching. See [voice setup and observed limits](docs/VOICE_SETUP.md). Live microphone capture needs alsa-utils and a working Linux audio device. No microphone test is claimed.
+
+Product cards/details now provide local English/Hindi/Odia read-aloud through native eSpeak NG and an HTML audio player. Setup and observed limits: [Voice setup](docs/VOICE_SETUP.md). No microphone or browser scripts are required for read-aloud.

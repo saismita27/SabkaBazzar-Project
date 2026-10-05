@@ -12,19 +12,19 @@ SIMULATED: payments, stock/price data, delivery tracking, SMS/callback, FIFO har
 
 ## What I was working on last
 
-Restored checkout/support/status translations and important validation messages, saved addresses, isolated Buy Now, protected product administration, help waiting mode and a real local C++ speech-recognition integration. Retained existing secure backend logic and old order snapshots. Browser behaviour uses ordinary forms/HTML, not client scripts.
+Added local native read-aloud on product cards/details with CSRF protection, timeouts and ordinary HTML audio playback. Restored checkout/support/status translations and important validation messages, saved addresses, isolated Buy Now, protected product administration, help waiting mode and a real local C++ speech-recognition integration. Retained existing secure backend logic and old order snapshots. Browser behaviour uses ordinary forms/HTML, not client scripts.
 
 ## Next 5 tasks
 
 1. User installs ALSA tools and explicitly tests the intended microphone; verify WSL audio routing.
 2. Obtain human review of Hindi/Odia translations and aliases; complete remaining technical/admin English labels.
-3. Finish read-aloud/TTS, improve responsive reference parity and accessibility through user testing.
+3. Review synthesized pronunciation and improve responsive reference parity and accessibility through user testing.
 4. Verify the real kernel module on a compatible authorized Linux machine/board.
 5. Improve guest-ticket admin coverage, catalogue import, account recovery and deployment hardening.
 
 ## Known problems
 
-No claim of exact pixel parity or full translation coverage. Buy Now currently buys one selected unit; ordinary cart supports quantity changes. Read-aloud/TTS is pending. Some operational/admin/voice labels remain English. 160 sample products, not 200 per subcategory. No real payments/courier/agent/callback/GPIO. No public security audit or email verification/reset. Voice may misrecognize speech; users review text. Pairing resets on restart/logout and retains only the latest help event. Automatic event navigation operates in the dedicated waiting screen, not every shopping page.
+No claim of exact pixel parity or full translation coverage. Buy Now currently buys one selected unit; ordinary cart supports quantity changes. Read-aloud WAV generation is tested in English/Hindi/Odia; pronunciation needs human review. Some operational/admin/voice labels remain English. 160 sample products, not 200 per subcategory. No real payments/courier/agent/callback/GPIO. No public security audit or email verification/reset. Voice may misrecognize speech; users review text. Pairing resets on restart/logout and retains only the latest help event. Automatic event navigation operates in the dedicated waiting screen, not every shopping page.
 
 ## Files recently modified
 
@@ -43,3 +43,4 @@ build/backend/sabka_backend backend/demo.sqlite backend/catalogue.json public --
 ```
 
 Open http://127.0.0.1:8080/. Use the existing database path consistently; the earlier no-argument launch used sabka.sqlite. Do not switch databases unintentionally. Stop the demo before `SABKA_BUILD_DIR=build/backend bash backend/test.sh`. No npm or Qt is required. Never change protected Git branches.
+Latest verification: all shopping/account/FIFO/restart regression checks and CTest passed again. Native read-aloud generated WAV audio for en, hi and or; rejected missing CSRF and invalid products. Evidence directory /tmp/tmp.YqBm9t6Ji1 is temporary. Microphone capture and real kernel module remain NOT TESTED.

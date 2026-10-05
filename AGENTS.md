@@ -62,3 +62,5 @@ The target is the polished browser experience with C++ server-generated HTML and
 ## Latest implementation update
 
 Saved-address and isolated Buy Now flows, protected catalogue editing and local voice upload now exist; consult PROJECT_STATUS.md rather than older pending lists above. voice_routes.hpp runs native capture/recognition without a shell, only after explicit CSRF-protected consent or file selection. Never auto-test a live microphone. Recognition setup and tested limits are in docs/VOICE_SETUP.md. Preserve branch restrictions.
+
+Read-aloud update: voice_routes.hpp includes CSRF-protected /voice/read with native eSpeak NG, bounded temporary files and timeout. Real English/Hindi/Odia WAV generation was verified by sabka_voice_smoke --tts. Keep human pronunciation review distinct from successful audio generation.

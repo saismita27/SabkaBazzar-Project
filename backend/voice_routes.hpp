@@ -19,6 +19,36 @@ inline bool run(const std::vector<std::string>& args,int seconds){
 }
 inline std::string base64(const std::string& input){static const char alphabet[]="ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";std::string out;unsigned value=0;int bits=-6;for(unsigned char c:input){value=(value<<8)|c;bits+=8;while(bits>=0){out+=alphabet[(value>>bits)&63];bits-=6;}}if(bits>-6)out+=alphabet[((value<<8)>>(bits+8))&63];while(out.size()%4)out+='=';return out;}
 inline void install(httplib::Server& server,Store& store,std::function<std::string(const httplib::Request&,httplib::Response&)> session){
+ server.Post("/voice/read",[&,session](const httplib::Request& req,httplib::Response& res){
+  std::string lang,text,pid=req.get_param_value("productId");
+  {std::lock_guard<std::mutex> guard(store.mutex);auto s=store.state(session(req,res));
+   if(!s.contains("webCsrf")||req.get_param_value("csrf")!=s["webCsrf"]){res.status=403;res.set_content("Invalid form token.","text/plain");return;}
+   lang=s.value("language",std::string("en"));if(lang!="hi"&&lang!="or")lang="en";
+   try{auto p=store.product(pid);text=web::name(p,lang)+". "+p["description"].value(lang,p["description"].value("en",std::string()));}
+   catch(...){res.status=404;res.set_content("Product not found.","text/plain");return;}
+  }
+  auto words=[&](const std::string& en,const std::string& hi,const std::string& od){return lang=="hi"?hi:lang=="or"?od:en;};
+  if(text.size()>16000){res.status=413;res.set_content("Product text is too long for audio.","text/plain");return;}
+  static std::mutex synthesis;std::unique_lock<std::mutex> guard(synthesis,std::try_to_lock);
+  if(!guard.owns_lock()){res.status=429;res.set_content("Read-aloud is busy. Please try again shortly.","text/plain");return;}
+  char pattern[]="/tmp/sabka-read-XXXXXX";char* dir=mkdtemp(pattern);if(!dir){res.status=500;return;}
+  struct Cleanup{std::string path;~Cleanup(){std::error_code ec;std::filesystem::remove_all(path,ec);}} cleanup{dir};
+  std::string input=std::string(dir)+"/text.txt",output=std::string(dir)+"/speech.wav";
+  {std::ofstream f(input);f<<text;if(!f){res.status=500;return;}}
+  const char* configured=std::getenv("SABKA_ESPEAK_BIN"),*data=std::getenv("SABKA_ESPEAK_DATA"),*home=std::getenv("HOME");
+  std::string cache=std::string(home?home:"")+"/.cache/sabka-espeak-ng/build";
+  std::string binary=configured?configured:access("/usr/bin/espeak-ng",X_OK)==0?"/usr/bin/espeak-ng":cache+"/src/espeak-ng";
+  std::vector<std::string> args{binary,"-v",lang,"-s","145","-f",input,"-w",output};
+  if(data)args.push_back(std::string("--path=")+data);else if(!configured&&binary!="/usr/bin/espeak-ng")args.push_back("--path="+cache);
+  std::string audio;
+  if(access(binary.c_str(),X_OK)==0&&run(args,20)){std::error_code ec;auto size=std::filesystem::file_size(output,ec);if(!ec&&size>=44&&size<=8000000){std::ifstream f(output,std::ios::binary);audio.assign(std::istreambuf_iterator<char>(f),{});if(audio.compare(0,4,"RIFF")||audio.compare(8,4,"WAVE"))audio.clear();}}
+  std::string title=words("Read aloud","पढ़कर सुनें","ପଢ଼ି ଶୁଣନ୍ତୁ");
+  std::string h="<!doctype html><html lang='"+lang+"'><meta charset='utf-8'><meta name='viewport' content='width=device-width,initial-scale=1'><title>"+title+"</title><link rel='stylesheet' href='/store.css'><main><section class='panel'><h1>"+title+"</h1>";
+  if(audio.empty()){res.status=503;h+="<p>"+words("Local speech generation is unavailable. Install espeak-ng or configure SABKA_ESPEAK_BIN and SABKA_ESPEAK_DATA. Product text remains available below.","स्थानीय आवाज़ अभी उपलब्ध नहीं है। उत्पाद का विवरण नीचे पढ़ें।","ସ୍ଥାନୀୟ ସ୍ୱର ଏବେ ଉପଲବ୍ଧ ନାହିଁ। ଉତ୍ପାଦ ବିବରଣୀ ତଳେ ପଢ଼ନ୍ତୁ।")+"</p>";}
+  else h+="<p>"+words("Press Play to listen. Synthetic pronunciation may be imperfect.","सुनने के लिए प्ले दबाएँ। कृत्रिम उच्चारण में त्रुटियाँ हो सकती हैं।","ଶୁଣିବା ପାଇଁ ପ୍ଲେ ଦବାନ୍ତୁ। କୃତ୍ରିମ ଉଚ୍ଚାରଣରେ ତ୍ରୁଟି ରହିପାରେ।")+"</p><audio controls aria-label='"+title+"' src='data:audio/wav;base64,"+base64(audio)+"'></audio>";
+  h+="<p>"+web::esc(text)+"</p><a class='button' href='/product?id="+web::esc(pid)+"'>"+words("Back to product","उत्पाद पर वापस जाएँ","ଉତ୍ପାଦକୁ ଫେରନ୍ତୁ")+"</a></section></main></html>";
+  res.set_header("Cache-Control","no-store");res.set_header("Content-Security-Policy","default-src 'none'; style-src 'self'; media-src data:; form-action 'self'; base-uri 'none'; frame-ancestors 'none'");res.set_content(h,"text/html; charset=utf-8");
+ });
  server.Post("/voice/record",[&,session](const httplib::Request& req,httplib::Response& res){
   auto field=[&](const std::string& key){return req.has_file(key)?req.get_file_value(key).content:req.get_param_value(key);};
   std::string lang;
