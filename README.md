@@ -79,3 +79,7 @@ cpp-httplib handles HTTP; SQLite provides prepared statements/transactions; nloh
 ## Honest limitations
 
 160 sample products, not 200 per subcategory. Prices/stock/payment/tracking are demonstrations. Product language selection preserves existing translations/aliases, but full interface translation and human review remain pending. No browser voice or real AI/chat/SMS/callback. Help is retrieved on refresh/menu access; there is no automatic browser popup. Some advanced variant/address/admin-product controls remain unfinished. No physical board/GPIO tests or real driver load has been completed. The previous React implementation remains recoverable in Git history at bf91a2b.
+
+## Development storefront restoration
+
+See [restoration audit](docs/RESTORATION_AUDIT.md) for current feature parity and test evidence. The development browser interface restores visible English/Hindi/Odia controls, departments/subcategories, account pages and richer product views using C++ HTML generation. Complete translation review, voice recognition and exact visual parity are still pending. No Qt installation is required. Build/run commands above remain valid.

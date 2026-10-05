@@ -20,5 +20,14 @@ int main(){try{
  r=c.Get("/help",h);check(r&&r->body.find("&lt;script&gt;alert(1)&lt;/script&gt;")!=std::string::npos,"support content HTML escaped");check(r->get_header_value("Content-Security-Policy").find("default-src 'none'")!=std::string::npos,"restrictive page security policy");
  for(auto path:{"/cart","/orders","/wishlist","/account","/product?id=prod-bay-leaf"}){r=c.Get(path,h);check(r&&r->status==200,"shopping page response");}
  r=c.Get("/orders");check(r&&r->body.find("SB-")==std::string::npos,"browser session order isolation");
+ post({{"op","preferences"},{"language","hi"},{"easy","on"},{"back","/"}});
+ r=c.Get("/",h);check(r&&r->body.find("lang='hi'")!=std::string::npos&&r->body.find("class='easy'")!=std::string::npos,"server-persisted Hindi and Easy Shopping");
+ check(r->body.find("खोज")!=std::string::npos&&r->body.find("<details class='preferences'>")==std::string::npos,"visible translated navigation");
+ r=c.Get("/");check(r&&r->body.find("lang='en'")!=std::string::npos,"language isolation between sessions");
+ post({{"op","preferences"},{"language","or"},{"back","/"}});
+ r=c.Get("/account",h);check(r&&r->body.find("lang='or'")!=std::string::npos,"Odia selection available before login");
+ post({{"op","preferences"},{"language","en"},{"back","/"}});
+ r=c.Get("/?category=cat-electronics&sub=Laptops",h);check(r&&r->body.find("Subcategory")!=std::string::npos&&r->body.find("Laptops")!=std::string::npos,"department subcategory navigation");
+ r=c.Get("/voice",h);check(r&&r->status==200&&r->body.find("PROPOSED")!=std::string::npos,"honest voice entry point");
  std::cout<<"ALL C++ WEB CHECKS PASSED\n";
 }catch(const std::exception& e){std::cerr<<e.what()<<'\n';return 1;}}

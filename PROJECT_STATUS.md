@@ -49,3 +49,15 @@ build/backend/sabka_cli
 Optional browser http://127.0.0.1:8080/. Stop the server before `SABKA_BUILD_DIR=build/backend bash backend/test.sh`. Native account menu 10; registered administrator menu 11. See README.md for the explicit local account-promotion command. No service has been installed/enabled and no kernel/boot configuration changed.
 
 Installation evidence: a staged `cmake --install build --prefix <temporary-directory>` produced the native binaries, catalogue and assets. `systemd-analyze --user verify` passed for a copy pointing to that staging prefix. The packaged diagnostics ran; the device test returned explicit skip status 77 because the character device is absent. Staging evidence: /tmp/tmp.RUZYEps2SX. No user service was installed or enabled.
+
+## Development restoration checkpoint — October 5
+
+IMPLEMENTED and regression-tested: prominent English/Hindi/Odia controls before login; server-persisted language and Easy Shopping with session isolation; translated navigation and account/product controls; all 12 named department links and subcategory filtering; approved homepage copy; distinct login/register views with successful authentication returning Home; rich product details, aliases, variant selector, preserved photos/reference links and honestly labelled sample ratings/prices. Easy Shopping enlarges controls and hides optional discovery/price decorations.
+
+Application remains server-rendered C++ with no browser scripts. Recovered local translation/category literals are compiled as data in backend/web_data.hpp. Translation text is inherited/unreviewed, with English fallback; full validation/checkout/support translation is still pending. Voice entry is PROPOSED, not a working microphone or recognizer. Read-aloud, comprehensive admin product editing and exact reference visual parity remain pending. Buy Now still includes the existing cart. Real driver remains NOT TESTED.
+
+Observed: Linux build passed; complete backend/test.sh suite and CTest passed after this checkpoint. Added checks cover language/Easy state, language isolation, department/subcategory route, honest voice status and registration redirect. Existing auth, checkout, duplicate prevention, restart, support and FIFO targeting checks passed. Latest temporary test evidence: /tmp/tmp.YbdEgl7KhK. Browser inspection confirmed visible header controls and full named department navigation. No claim of exhaustive responsive or translation review.
+
+Next five tasks: finish validation/checkout/support localization; improve discovery and product visual parity; complete saved-address/Buy Now behavior; implement and verify local C++ voice prototype; complete admin product management and help-panel refresh integration. Full feature-gap table and implementation sequence: docs/RESTORATION_AUDIT.md.
+
+Recently modified in this checkpoint: backend/web.hpp, web_data.hpp, web_smoke.cpp, auth_smoke.cpp; public/store.css; docs/RESTORATION_AUDIT.md; AGENTS.md; README.md; PROJECT_STATUS.md.
