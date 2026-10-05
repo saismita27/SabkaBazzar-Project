@@ -42,3 +42,6 @@ Observed: Linux build passed; complete backend/test.sh suite and CTest passed af
 Next five tasks: finish validation/checkout/support localization; improve discovery and product visual parity; complete saved-address/Buy Now behavior; implement and verify local C++ voice prototype; complete admin product management and help-panel refresh integration. Full feature-gap table and implementation sequence: docs/RESTORATION_AUDIT.md.
 
 Recently modified in this checkpoint: backend/web.hpp, web_data.hpp, web_smoke.cpp, auth_smoke.cpp; public/store.css; docs/RESTORATION_AUDIT.md; AGENTS.md; README.md; PROJECT_STATUS.md.
+## Latest verified restoration
+
+See PROJECT_STATUS.md for the superseding current status. Saved addresses, isolated Buy Now, protected catalogue administration, translated checkout/support/status controls and important validation messages now have regression coverage. Local WAV-to-text through the actual C++ recognizer passed; microphone remains NOT TESTED. Exact reference parity, human translation review and TTS remain pending.

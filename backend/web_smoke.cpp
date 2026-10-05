@@ -10,6 +10,7 @@ int main(){try{
  httplib::Client c("127.0.0.1",8080);auto r=c.Get("/");check(r&&r->status==200,"C++ homepage responds");check(r->body.find("<script")==std::string::npos,"no browser scripts");check(r->body.find("Where every family finds its favourites")!=std::string::npos,"approved branding");auto cookie=r->get_header_value("Set-Cookie");cookie=cookie.substr(0,cookie.find(';'));httplib::Headers h={{"Cookie",cookie}};auto csrf=value(r->body,"csrf");
  auto post=[&](httplib::Params p,int status=303){p.emplace("csrf",csrf);auto x=c.Post("/shop/action",h,p);check(x&&x->status==status,"form action status");return x;};
  auto asset=c.Get("/store.css");check(asset&&asset->status==200,"local stylesheet served");asset=c.Get("/images/grocery-brands/prod-bay-leaf.jpg");check(asset&&asset->status==200,"preserved local product photo served");
+ auto all=c.Get("/api/products");check(all&&all->status==200,"full catalogue available");for(const auto& product:J::parse(all->body)){auto image=c.Get(product["imageUrl"].get<std::string>());if(!image||image->status!=200)throw std::runtime_error("Missing image: "+product["id"].get<std::string>());}check(true,"all catalogue image paths load from project root");
  auto bad=c.Post("/shop/action",h,httplib::Params{{"op","cart.add"}});check(bad&&bad->status==403,"form CSRF rejection");
  r=c.Get("/?q=tej%20patta",h);check(r&&r->body.find("1 sample products")!=std::string::npos,"C++ HTML alias search");
  post({{"op","cart.add"},{"productId","prod-bay-leaf"},{"quantity","1"},{"back","/cart"}});
@@ -28,6 +29,14 @@ int main(){try{
  r=c.Get("/account",h);check(r&&r->body.find("lang='or'")!=std::string::npos,"Odia selection available before login");
  post({{"op","preferences"},{"language","en"},{"back","/"}});
  r=c.Get("/?category=cat-electronics&sub=Laptops",h);check(r&&r->body.find("Subcategory")!=std::string::npos&&r->body.find("Laptops")!=std::string::npos,"department subcategory navigation");
- r=c.Get("/voice",h);check(r&&r->status==200&&r->body.find("PROPOSED")!=std::string::npos,"honest voice entry point");
+ r=c.Get("/voice",h);check(r&&r->status==200&&r->body.find("PROTOTYPE")!=std::string::npos,"honest voice entry point");
+ auto denied=c.Post("/voice/record",h,httplib::Params{{"csrf",csrf}});check(denied&&denied->status==403,"voice capture requires explicit consent without activating microphone");
+ post({{"op","address"},{"fullName","Demo"},{"addressLine","Saved street"},{"city","Demo"},{"pincode","751001"},{"mobile","9000000000"},{"back","/account"}});
+ post({{"op","cart.add"},{"productId","prod-bay-leaf"},{"quantity","1"},{"back","/cart"}});
+ r=c.Get("/checkout?address=0",h);check(r&&r->body.find("value='Saved street'")!=std::string::npos,"saved address prefills checkout");
+ post({{"op","buy.now"},{"productId","prod-bay-leaf"},{"back","/buy-checkout"}});
+ r=c.Get("/buy-checkout",h);check(r&&r->status==200,"isolated Buy Now checkout page");key=value(r->body,"key");p.erase("key");p.emplace("key",key);p.emplace("buyNow","yes");post(p);post(p);
+ r=c.Get("/api/state",h);state=J::parse(r->body);check(state["cart"].size()==1&&state["orders"].size()==2&&state["buyNow"].empty(),"Buy Now preserves cart and prevents duplicate orders");
+ post({{"op","kiosk.bind"},{"back","/help"}});r=c.Get("/help/watch",h);check(r&&r->status==200&&r->get_header_value("Refresh")=="3","JavaScript-free paired help waiting mode");
  std::cout<<"ALL C++ WEB CHECKS PASSED\n";
 }catch(const std::exception& e){std::cerr<<e.what()<<'\n';return 1;}}

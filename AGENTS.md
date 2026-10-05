@@ -58,3 +58,7 @@ From daily essentials to little celebrations — sabke liye, sab kuch
 Work only on development. Before EVERY commit and push, run git branch --show-current and stop unless it is exactly development. Push only origin/development. Never checkout, modify, merge into, reset, rebase onto or push main. Never modify backup/project-snapshot. The React snapshot bf91a2b is read-only visual/functional reference, not a runtime dependency.
 
 The target is the polished browser experience with C++ server-generated HTML and CSS, SQLite and existing Linux/device integration. Do not replace it with a simplified website or a separate Qt application. No JavaScript/TypeScript/React/Node/Python or other application language. See docs/RESTORATION_AUDIT.md for the complete parity checklist. Preserve all catalogue records/photos and secure existing backend rules.
+
+## Latest implementation update
+
+Saved-address and isolated Buy Now flows, protected catalogue editing and local voice upload now exist; consult PROJECT_STATUS.md rather than older pending lists above. voice_routes.hpp runs native capture/recognition without a shell, only after explicit CSRF-protected consent or file selection. Never auto-test a live microphone. Recognition setup and tested limits are in docs/VOICE_SETUP.md. Preserve branch restrictions.

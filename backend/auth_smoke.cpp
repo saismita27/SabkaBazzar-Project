@@ -30,6 +30,12 @@ int main(int argc,char** argv){sqlite3* db=nullptr;try{
  sqlite3_stmt* stmt=nullptr;sqlite3_prepare_v2(db,"SELECT password_hash FROM accounts WHERE email='cpp-user@example.test'",-1,&stmt,nullptr);check(sqlite3_step(stmt)==SQLITE_ROW,"password record exists");std::string hash=reinterpret_cast<const char*>(sqlite3_column_text(stmt,0));sqlite3_finalize(stmt);check(hash.rfind("$argon2id$",0)==0&&hash.find("Test-only")==std::string::npos,"only Argon2id password hash stored");
  // Fixture promotion represents the explicit local operator command, never HTTP.
  check(sqlite3_exec(db,"UPDATE accounts SET role='admin' WHERE email='cpp-other@example.test'",nullptr,nullptr,nullptr)==SQLITE_OK,"fixture admin promotion");
+ auto catalog=c.Get("/api/products?q=tej%20patta");auto product=J::parse(catalog->body)[0];
+ action(user,{{"op","product.save"},{"product",product}},400);
+ product["price"]=36;product["aliases"].push_back({{"term","catalogue-test-alias"},{"language","en"}});
+ action(otherCookie,{{"op","product.save"},{"product",product}});
+ auto changed=c.Get("/api/products?q=catalogue-test-alias");check(changed&&J::parse(changed->body).size()==1&&J::parse(changed->body)[0]["price"]==36,"admin catalogue price and alias persist");
+ product["stock"]=-1;action(otherCookie,{{"op","product.save"},{"product",product}},400);
  auto admin=c.Get("/api/admin",{{"Cookie",otherCookie}});check(admin&&admin->status==200,"authenticated admin inbox");
  action(otherCookie,{{"op","order.state"},{"owner",owner},{"orderId",order},{"status","Confirmed"}});
  action(otherCookie,{{"op","support.reply"},{"owner",owner},{"ticketId",ticket},{"reply","C++ admin reply"}});

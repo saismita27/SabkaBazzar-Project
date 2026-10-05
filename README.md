@@ -45,7 +45,7 @@ Register a separate demo administrator, stop the server, then deliberately promo
 build/backend/sabka_backend --make-admin backend/demo.sqlite your-demo-admin@example.test
 ```
 
-Restart and log in to that account. Browser: Account → Administrator workspace. Terminal: menu 11. Administrators can advance **registered-account** orders and reply to registered-account support tickets. Shoppers can cancel their own eligible orders but cannot advance fulfilment. No web request can grant the admin role. Product editing and guest-ticket admin management remain pending.
+Restart and log in to that account. Browser: Account → Administrator workspace. Terminal: menu 11. Administrators can advance **registered-account** orders and reply to registered-account support tickets. Shoppers can cancel their own eligible orders but cannot advance fulfilment. No web request can grant the admin role. The administrator workspace also adds/edits catalogue names, descriptions, prices, stock, local image paths and aliases. Enter a product ID to load an existing item or create a new one. Changes persist in SQLite; old order snapshots remain intact. Guest-ticket admin management remains pending.
 
 ## Embedded Linux components
 
@@ -78,8 +78,14 @@ cpp-httplib handles HTTP; SQLite provides prepared statements/transactions; nloh
 
 ## Honest limitations
 
-160 sample products, not 200 per subcategory. Prices/stock/payment/tracking are demonstrations. Product language selection preserves existing translations/aliases, but full interface translation and human review remain pending. No browser voice or real AI/chat/SMS/callback. Help is retrieved on refresh/menu access; there is no automatic browser popup. Some advanced variant/address/admin-product controls remain unfinished. No physical board/GPIO tests or real driver load has been completed. The previous React implementation remains recoverable in Git history at bf91a2b.
+160 sample products, not 200 per subcategory. Prices/stock/payment/tracking are demonstrations. Product language selection preserves existing translations/aliases, but full interface translation and human review remain pending. Local C++ voice upload/transcription is tested; live microphone capture is not yet verified. No real AI chat, SMS or callback. The paired browser can use Help → waiting mode for three-second server-driven event checks without JavaScript. Other pages do not automatically open a help popup. Saved addresses and product administration are available. Read-aloud and advanced catalogue import remain unfinished. No physical board/GPIO tests or real driver load has been completed. The previous React implementation remains recoverable in Git history at bf91a2b.
 
 ## Development storefront restoration
 
 See [restoration audit](docs/RESTORATION_AUDIT.md) for current feature parity and test evidence. The development browser interface restores visible English/Hindi/Odia controls, departments/subcategories, account pages and richer product views using C++ HTML generation. Complete translation review, voice recognition and exact visual parity are still pending. No Qt installation is required. Build/run commands above remain valid.
+
+## Restored shopping flows
+
+Buy Now checks out one selected product without consuming the existing cart. Saved addresses can be entered under Account and selected at checkout. Checkout, tracking and support controls include local Hindi/Odia text; translations still require human review and some technical/admin labels remain English. Product editing is protected by the existing server-side administrator role.
+
+Voice Search supports local WAV transcription through whisper.cpp, with review before searching. See [voice setup and observed limits](docs/VOICE_SETUP.md). Live microphone capture needs alsa-utils and a working Linux audio device. No microphone test is claimed.

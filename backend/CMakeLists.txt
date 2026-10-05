@@ -47,3 +47,7 @@ install(FILES ../embedded/systemd/sabka-bazaar.service DESTINATION share/sabka-b
 add_executable(sabka_auth_smoke auth_smoke.cpp)
 target_link_libraries(sabka_auth_smoke PRIVATE PkgConfig::HTTP nlohmann_json::nlohmann_json SQLite::SQLite3)
 target_compile_options(sabka_auth_smoke PRIVATE -Wall -Wextra -Wpedantic)
+
+add_executable(sabka_voice_smoke voice_smoke.cpp)
+target_link_libraries(sabka_voice_smoke PRIVATE PkgConfig::HTTP)
+target_compile_options(sabka_voice_smoke PRIVATE -Wall -Wextra -Wpedantic)

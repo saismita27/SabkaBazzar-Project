@@ -85,25 +85,32 @@ struct Store {
     if(it!=c.end())c.erase(it);
     if(qty>0)c.push_back({{"product",p},{"quantity",qty},{"selectedVariant",v}});
    } else if(op=="cart.clear")s["cart"]=J::array();
+   else if(op=="buy.now"){
+    auto p=product(a.at("productId"));auto variant=a.value("variant",std::string());
+    if(p["stock"].get<int>()<1)throw std::invalid_argument("Quantity exceeds stock");
+    if(!variant.empty()&&(!p.contains("variants")||std::find(p["variants"].begin(),p["variants"].end(),variant)==p["variants"].end()))throw std::invalid_argument("Invalid variant");
+    s["buyNow"]=J::array({{{"product",p},{"quantity",1},{"selectedVariant",variant}}});
+   }
    else if(op=="wishlist.toggle"){auto p=product(a.at("productId"));auto& w=s["wishlist"];auto it=std::find_if(w.begin(),w.end(),[&](auto& x){return x["id"]==p["id"];});if(it==w.end())w.push_back(p);else w.erase(it);}
    else if(op=="profile"){s["user"]=a.at("user");s["user"]["id"]=id;s["user"]["role"]="customer";}
-   else if(op=="address"){s["addresses"].push_back(a.at("address"));}
+   else if(op=="address"){auto address=a.at("address");for(auto field:{"fullName","addressLine","city"})if(address.value(field,std::string()).empty()||address.value(field,std::string()).size()>200)throw std::invalid_argument("Address is incomplete");if(!std::regex_match(address.value("pincode",std::string()),std::regex("[0-9]{6}"))||!std::regex_match(address.value("mobile",std::string()),std::regex("[0-9]{10}")))throw std::invalid_argument("Invalid PIN or demo mobile");if(s["addresses"].size()>=10)throw std::invalid_argument("Maximum ten saved addresses");if(std::find(s["addresses"].begin(),s["addresses"].end(),address)==s["addresses"].end())s["addresses"].push_back(address);}
    else if(op=="logout"){s["user"]=nullptr;if(paired==id)paired.clear();}
    else if(op=="help.ack"){
     if(s.contains("helpEvent")&&s["helpEvent"]["eventId"]==a.at("eventId"))s["helpEvent"]["handled"]=true;
    }
    else if(op=="checkout"){
     std::string key=a.at("key");if(key.empty()||key.size()>128)throw std::invalid_argument("Invalid checkout key");
-    J payload={{"address",a.at("address")},{"payment",a.at("payment")}};
+    bool buy=a.value("buyNow",false);J& basket=buy?s["buyNow"]:s["cart"];
+    J payload={{"address",a.at("address")},{"payment",a.at("payment")}};if(buy)payload["buyNow"]=true;
     for(auto& o:s["orders"])if(o["idempotencyToken"]==key){if(o["_payload"]!=payload)throw std::invalid_argument("Checkout key already used");result=o;break;}
     if(result.is_null()){
      auto address=a.at("address");for(auto field:{"fullName","addressLine","city"})if(address.value(field,std::string()).empty())throw std::invalid_argument("Address is incomplete");
      if(!std::regex_match(address.value("pincode",std::string()),std::regex("[0-9]{6}"))||!std::regex_match(address.value("mobile",std::string()),std::regex("[0-9]{10}")))throw std::invalid_argument("Invalid PIN or demo mobile");
      std::string payment=a.at("payment");if(payment!="COD"&&payment!="UPI"&&payment!="Card")throw std::invalid_argument("Invalid demo payment");
-     if(s["cart"].empty())throw std::invalid_argument("Your cart is empty");
-     for(auto& item:s["cart"]){auto p=product(item["product"]["id"]);int qty=item["quantity"];if(qty<1||qty>p["stock"].get<int>())throw std::invalid_argument("Stock changed; update cart");item["product"]=p;stock(p["id"],-qty);}
-     J o=totals(s["cart"]);o.update({{"id","SB-"+token()},{"userId",accounts->owner(id)},{"items",s["cart"]},{"discount",0},{"status","Placed"},{"paymentMethod",payment},{"paymentStatus",payment=="COD"?"Pending":"Paid"},{"shippingAddress",address},{"idempotencyToken",key},{"createdAt",now()},{"_payload",payload},{"timeline",J::array({{{"status","Placed"},{"timestamp",now()},{"note","C++ transactional checkout; simulated payment"}}})}});
-     s["orders"].insert(s["orders"].begin(),o);s["cart"]=J::array();result=o;
+     if(basket.empty())throw std::invalid_argument("Your cart is empty");
+     for(auto& item:basket){auto p=product(item["product"]["id"]);int qty=item["quantity"];if(qty<1||qty>p["stock"].get<int>())throw std::invalid_argument("Stock changed; update cart");item["product"]=p;stock(p["id"],-qty);}
+     J o=totals(basket);o.update({{"id","SB-"+token()},{"userId",accounts->owner(id)},{"items",basket},{"discount",0},{"status","Placed"},{"paymentMethod",payment},{"paymentStatus",payment=="COD"?"Pending":"Paid"},{"shippingAddress",address},{"idempotencyToken",key},{"createdAt",now()},{"_payload",payload},{"timeline",J::array({{{"status","Placed"},{"timestamp",now()},{"note","C++ transactional checkout; simulated payment"}}})}});
+     s["orders"].insert(s["orders"].begin(),o);basket=J::array();result=o;
     }
    } else if(op=="order.state"){
     auto& orders=s["orders"];auto it=std::find_if(orders.begin(),orders.end(),[&](auto& o){return o["id"]==a.at("orderId");});if(it==orders.end())throw std::invalid_argument("Order not found");
@@ -116,19 +123,36 @@ struct Store {
     if(a.contains("orderId")&&!a["orderId"].get<std::string>().empty()){bool found=false;for(auto& o:s["orders"])if(o["id"]==a["orderId"])found=true;if(!found)throw std::invalid_argument("Order not found");}
     J t={{"id","TCK-"+token()},{"userId",accounts->owner(id)},{"type",a.at("type")},{"subject",a.at("subject")},{"message",a.at("message")},{"status","Open"},{"createdAt",now()}};if(a.contains("orderId"))t["orderId"]=a["orderId"];s["supportTickets"].push_back(t);
    } else if(op=="support.reply"){if(!accounts->admin(id))throw std::invalid_argument("Administrator access required");bool found=false;for(auto& t:s["supportTickets"])if(t["id"]==a.at("ticketId")){t["adminReply"]=a.at("reply");t["status"]="In Progress";found=true;}if(!found)throw std::invalid_argument("Ticket not found");}
+   else if(op=="product.save"){
+    if(!accounts->admin(id))throw std::invalid_argument("Administrator access required");
+    J p=a.at("product");std::string pid=p.at("id");
+    if(!std::regex_match(pid,std::regex("[a-zA-Z0-9_-]{1,100}")))throw std::invalid_argument("Invalid product ID");
+    for(auto k:{"name","description"}){if(!p.contains(k)||!p[k].is_object())throw std::invalid_argument("Missing product text");for(auto lang:{"en","hi","or"})if(!p[k].contains(lang)||!p[k][lang].is_string()||p[k][lang].get<std::string>().size()>6000)throw std::invalid_argument("Invalid product translation");}
+    if(p["name"]["en"].get<std::string>().empty())throw std::invalid_argument("Product name is required");
+    for(auto k:{"price","mrp"})if(!p.contains(k)||!p[k].is_number()||!std::isfinite(p[k].get<double>())||p[k].get<double>()<0||p[k].get<double>()>10000000)throw std::invalid_argument("Invalid price");
+    if(!p["stock"].is_number_integer()||p["stock"]<0||p["stock"]>100000)throw std::invalid_argument("Invalid stock");
+    for(auto k:{"categoryId","subCategory","brand","unit","imageUrl"})if(!p.contains(k)||!p[k].is_string()||p[k].get<std::string>().size()>300)throw std::invalid_argument("Invalid product field");
+    auto img=p["imageUrl"].get<std::string>();if(img.rfind("/images/",0)!=0||img.find("..")!=std::string::npos||img.find('\\')!=std::string::npos)throw std::invalid_argument("Use a local /images/ path");
+    if(!p["aliases"].is_array()||p["aliases"].size()>100)throw std::invalid_argument("Invalid aliases");
+    for(auto& alias:p["aliases"]){if(!alias.is_object()||!alias.contains("term")||!alias["term"].is_string()||alias["term"].get<std::string>().size()>200)throw std::invalid_argument("Invalid alias");alias["review_status"]="pending";}
+    if(p.contains("variants")){if(!p["variants"].is_array()||p["variants"].size()>100)throw std::invalid_argument("Invalid variants");for(auto& v:p["variants"])if(!v.is_string()||v.get<std::string>().size()>200)throw std::invalid_argument("Invalid variant");}
+    Statement q(db,"INSERT INTO products(id,data,stock) VALUES(?,?,?) ON CONFLICT(id) DO UPDATE SET data=excluded.data,stock=excluded.stock");q.text(1,pid);q.text(2,p.dump());q.number(3,p["stock"]);q.step();result={{"id",pid}};
+   }
+
    else throw std::invalid_argument("Unknown action");
    save(subject,s);exec("COMMIT");return {{"state",view(s)},{"result",result}};
   }catch(...){exec("ROLLBACK");throw;}
  }
 };
 #include "web.hpp"
+#include "voice_routes.hpp"
 int main(int argc,char** argv){
  try{
   if(sodium_init()<0)return 1;
   if(argc==4&&std::string(argv[1])=="--make-admin"){Store local(argv[2]);local.accounts->promote(argv[3]);std::cout<<"Local account promoted to administrator\n";return 0;}
   Store store(argc>1?argv[1]:"sabka.sqlite");store.seed(argc>2?argv[2]:"backend/catalogue.json");
   sigset_t signals;sigemptyset(&signals);sigaddset(&signals,SIGINT);sigaddset(&signals,SIGTERM);pthread_sigmask(SIG_BLOCK,&signals,nullptr);
-  httplib::Server server;server.set_payload_max_length(65536);
+  httplib::Server server;server.set_payload_max_length(1048576);
   auto session=[&](const httplib::Request& req,httplib::Response& res){std::smatch match;auto cookie=req.get_header_value("Cookie");if(std::regex_search(cookie,match,std::regex("(?:^|; *)sb_session=([a-f0-9]{48})(?:;|$)")))return match[1].str();auto id=token();res.set_header("Set-Cookie","sb_session="+id+"; HttpOnly; SameSite=Strict; Path=/");return id;};
   server.Get("/api/health",[](auto&,auto& res){res.set_content(R"({"backend":"C++17","storage":"SQLite","mode":"local demonstration"})","application/json");});
   server.Get("/api/state",[&](auto& req,auto& res){std::lock_guard<std::mutex> lock(store.mutex);auto id=session(req,res);res.set_header("Cache-Control","no-store");res.set_content(store.view(store.state(id)).dump(),"application/json");});
@@ -159,7 +183,7 @@ int main(int argc,char** argv){
   server.Get("/api/admin",[&](const httplib::Request& req,httplib::Response& res){
    std::lock_guard<std::mutex> lock(store.mutex);auto id=session(req,res);if(!store.accounts->admin(id)){res.status=403;res.set_content(R"({"error":"Administrator login required"})","application/json");return;}res.set_header("Cache-Control","no-store");res.set_content(store.admin_view(id).dump(),"application/json");
   });
-  web::install(server,store,session);
+  web::install(server,store,session);voice::install(server,store,session);
   const std::string assets=argc>3?argv[3]:"public";
   if(assets!="-"&&!server.set_mount_point("/",assets))throw std::runtime_error("Static directory missing");
   if(!server.bind_to_port("127.0.0.1",8080))throw std::runtime_error("Port 8080 unavailable");
