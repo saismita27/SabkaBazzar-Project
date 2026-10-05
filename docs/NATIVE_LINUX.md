@@ -1,3 +1,5 @@
+> Historical walkthrough from the initial native conversion. Current account/admin and root-build instructions are in README.md and docs/EMBEDDED_LINUX.md; anonymous-only descriptions below predate the account implementation.
+
 # Sabka Bazaar: native C++ Linux demonstration
 
 This is another interface to the **same shopping backend and SQLite database**, not a separate shopping project. The terminal application and backend are C++17. The educational driver is C. No Node, React, TypeScript or Python is required to build or run this native path. The preserved optional website still contains TypeScript; do not describe the entire repository as C/C++ only.

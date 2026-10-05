@@ -1,0 +1,18 @@
+[Unit]
+Description=Sabka Bazaar C++ assisted-shopping kiosk (FIFO demonstration)
+
+[Service]
+Type=simple
+ExecStartPre=/usr/bin/mkdir -p %h/.local/state/sabka-bazaar
+ExecStart=%h/.local/bin/sabka_backend %h/.local/state/sabka-bazaar/shop.sqlite %h/.local/share/sabka-bazaar/catalogue.json %h/.local/share/sabka-bazaar/public --fifo
+Restart=on-failure
+RestartSec=3
+TimeoutStopSec=10
+UMask=0077
+NoNewPrivileges=true
+# No PrivateTmp: the explicitly named FIFO must be reachable by the same user's trigger.
+StandardOutput=journal
+StandardError=journal
+
+[Install]
+WantedBy=default.target

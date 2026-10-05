@@ -5,7 +5,7 @@
  * 
  * This driver registers /dev/sabka_help. A userspace write simulates a button
  * event. One event can be pending; further writes return EBUSY until consumed.
- * Physical GPIO, IRQ handling and browser integration are not implemented.
+ * Physical GPIO and IRQ handling are not implemented; C++ consumes the shared event ABI.
  *
  * Demonstrates:
  * - Module initialization and cleanup (module_init, module_exit)
@@ -40,13 +40,7 @@ MODULE_AUTHOR("B.Tech CSIT Final Year Project");
 MODULE_DESCRIPTION("Assisted Shopping Kiosk Help Button Character Device Driver");
 MODULE_VERSION("1.0");
 
-/* Structure representing an event payload transferred to userspace */
-struct sabka_event {
-    uint32_t event_id;       /* Monotonically increasing sequence number */
-    uint32_t kiosk_id;       /* Kiosk terminal identifier (e.g., 101) */
-    uint64_t timestamp_ns;   /* Kernel timestamp in nanoseconds */
-    char     trigger_source[32]; /* "PHYSICAL_GPIO" or "TEST_SIMULATOR" */
-};
+#include "sabka_help_protocol.h"
 
 /* Driver State Data Structure */
 static dev_t dev_number;                  /* Major & Minor device number */
@@ -126,6 +120,7 @@ static ssize_t sabka_write(struct file *filep, const char __user *buffer, size_t
         return -EFAULT;
     }
     user_cmd[copy_len] = '\0';
+    if (len != 5 || memcmp(user_cmd, SABKA_HELP_COMMAND, 5)) return -EINVAL;
 
     mutex_lock(&driver_lock);
     if (event_available) {
@@ -134,7 +129,7 @@ static ssize_t sabka_write(struct file *filep, const char __user *buffer, size_t
     }
     event_counter++;
     current_event.event_id = event_counter;
-    current_event.kiosk_id = 101; /* Kiosk Station #1 */
+    current_event.kiosk_id = SABKA_KIOSK_ID; /* Kiosk Station #1 */
     current_event.timestamp_ns = ktime_get_real_ns();
     snprintf(current_event.trigger_source, sizeof(current_event.trigger_source), "TEST_SIMULATOR");
 

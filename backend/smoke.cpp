@@ -34,7 +34,7 @@ int main(int argc,char** argv){
  auto list=J::parse(client.Get("/api/products")->body);check(list[0]["stock"]==stock-1,"stock deducted once");
  auto other=client.Get("/api/state");check(J::parse(other->body)["orders"].empty(),"separate session cannot see orders");
  call({{"op","order.state"},{"orderId",order["id"]},{"status","Delivered"}},400);
- call({{"op","order.state"},{"orderId",order["id"]},{"status","Confirmed"}});
+ call({{"op","order.state"},{"orderId",order["id"]},{"status","Confirmed"}},400);
  call({{"op","order.state"},{"orderId",order["id"]},{"status","Cancelled"}});
  check(J::parse(client.Get("/api/products")->body)[0]["stock"]==stock,"cancellation restores stock");
  call({{"op","order.state"},{"orderId",order["id"]},{"status","Cancelled"}},400);

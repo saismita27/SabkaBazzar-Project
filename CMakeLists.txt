@@ -1,0 +1,7 @@
+cmake_minimum_required(VERSION 3.20)
+project(SabkaBazaarLinux LANGUAGES C CXX)
+if(NOT CMAKE_SYSTEM_NAME STREQUAL "Linux")
+  message(FATAL_ERROR "Build Sabka Bazaar inside Ubuntu/Linux, not the Windows compiler")
+endif()
+enable_testing()
+add_subdirectory(backend)

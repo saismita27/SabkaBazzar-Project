@@ -29,29 +29,48 @@ struct Statement {
 };
 std::string token(){unsigned char b[24];char h[49];randombytes_buf(b,sizeof b);sodium_bin2hex(h,sizeof h,b,sizeof b);return h;}
 std::string now(){std::time_t time=std::time(nullptr);std::tm utc{};gmtime_r(&time,&utc);std::ostringstream out;out<<std::put_time(&utc,"%Y-%m-%dT%H:%M:%SZ");return out.str();}
+#include "accounts.hpp"
 struct Store {
- sqlite3* db=nullptr; std::mutex mutex; std::string paired;
- explicit Store(const char* path){if(sqlite3_open(path,&db)!=SQLITE_OK)throw std::runtime_error("Database open failed");sqlite3_busy_timeout(db,5000);exec("PRAGMA journal_mode=WAL; CREATE TABLE IF NOT EXISTS clients(id TEXT PRIMARY KEY,data TEXT NOT NULL); CREATE TABLE IF NOT EXISTS products(id TEXT PRIMARY KEY,data TEXT NOT NULL,stock INTEGER NOT NULL CHECK(stock>=0));");}
+ std::unique_ptr<Accounts> accounts; sqlite3* db=nullptr; std::mutex mutex; std::string paired;
+ explicit Store(const char* path){if(sqlite3_open(path,&db)!=SQLITE_OK)throw std::runtime_error("Database open failed");sqlite3_busy_timeout(db,5000);exec("PRAGMA journal_mode=WAL; CREATE TABLE IF NOT EXISTS clients(id TEXT PRIMARY KEY,data TEXT NOT NULL); CREATE TABLE IF NOT EXISTS products(id TEXT PRIMARY KEY,data TEXT NOT NULL,stock INTEGER NOT NULL CHECK(stock>=0));");accounts=std::make_unique<Accounts>(db);}
  ~Store(){sqlite3_close(db);}
  void exec(const char* sql){char* error=nullptr;if(sqlite3_exec(db,sql,nullptr,nullptr,&error)!=SQLITE_OK){std::string msg=error?error:"SQL error";sqlite3_free(error);throw std::runtime_error(msg);}}
  J initial(){return {{"cart",J::array()},{"wishlist",J::array()},{"orders",J::array()},{"addresses",J::array()},{"supportTickets",J::array()},{"user",nullptr}};}
- J state(const std::string& id){Statement q(db,"SELECT data FROM clients WHERE id=?");q.text(1,id);return q.step()==SQLITE_ROW?J::parse(q.str(0)):initial();}
- void save(const std::string& id,const J& s){Statement q(db,"INSERT INTO clients VALUES(?,?) ON CONFLICT(id) DO UPDATE SET data=excluded.data");q.text(1,id);q.text(2,s.dump());q.step();}
+ J state(const std::string& id){Statement q(db,"SELECT data FROM clients WHERE id=?");q.text(1,accounts->owner(id));J s=q.step()==SQLITE_ROW?J::parse(q.str(0)):initial();auto u=accounts->user(id);if(!u.is_null())s["user"]=u;return s;}
+ void save(const std::string& id,const J& s){Statement q(db,"INSERT INTO clients VALUES(?,?) ON CONFLICT(id) DO UPDATE SET data=excluded.data");q.text(1,accounts->owner(id));q.text(2,s.dump());q.step();}
  J product(const std::string& id){Statement q(db,"SELECT data,stock FROM products WHERE id=?");q.text(1,id);if(q.step()!=SQLITE_ROW)throw std::invalid_argument("Unknown product");J p=J::parse(q.str(0));p["stock"]=sqlite3_column_int64(q.p,1);return p;}
  void stock(const std::string& id,int delta){Statement q(db,"UPDATE products SET stock=stock+? WHERE id=?");q.number(1,delta);q.text(2,id);q.step();}
  void seed(const char* path){std::ifstream f(path);if(!f)throw std::runtime_error("Catalogue file missing");J products;f>>products;exec("BEGIN IMMEDIATE");try{for(auto& p:products){Statement q(db,"INSERT OR IGNORE INTO products VALUES(?,?,?)");q.text(1,p.at("id"));q.text(2,p.dump());q.number(3,p.at("stock"));q.step();}exec("COMMIT");}catch(...){exec("ROLLBACK");throw;}}
  J totals(const J& cart){long long paise=0;for(auto& x:cart)paise+=std::llround(x["product"]["price"].get<double>()*100)*x["quantity"].get<int>();long long tax=((paise*5+5000)/10000)*100;long long delivery=paise==0||paise>=49900?0:4000;return {{"subtotal",paise/100.0},{"gst",tax/100.0},{"deliveryFee",delivery/100.0},{"total",(paise+tax+delivery)/100.0}};}
  J view(J s){s["totals"]=totals(s["cart"]);return s;}
- void help(const std::string& source){
+ void help(const std::string& source,const sabka_event& event){
   if(paired.empty())return;
   J s=state(paired);
   s["helpEvent"]={{"eventId",std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch()).count()},{"kioskId",101},{"timestamp",now()},{"source",source},{"rawPayload","HELP_REQUEST"},{"handled",false}};
+  s["helpEvent"]["deviceSequence"]=event.event_id;
+  s["helpEvent"]["deviceTimestampNs"]=event.timestamp_ns;
+  s["helpEvent"]["kioskId"]=event.kiosk_id;
   save(paired,s);
  }
+ J admin_view(const std::string& id){
+  if(!accounts->admin(id))throw std::invalid_argument("Administrator login required");
+  J out=J::array();Statement q(db,"SELECT c.id,c.data,a.email FROM clients c JOIN accounts a ON a.owner=c.id");
+  while(q.step()==SQLITE_ROW){auto s=J::parse(q.str(1));out.push_back({{"owner",q.str(0)},{"email",q.str(2)},{"orders",s["orders"]},{"supportTickets",s["supportTickets"]}});}return out;
+ }
+ std::string authenticate(const std::string& old,const J& a){
+  std::string op=a.at("op");
+  if(op=="logout"){accounts->logout(old);if(paired==old)paired.clear();return token();}
+  if(op!="register"&&op!="login")throw std::invalid_argument("Unknown account action");
+  J guest=state(old);bool wasGuest=accounts->user(old).is_null();
+  auto fresh=accounts->authenticate(a.at("email"),a.at("password"),op=="register");
+  if(op=="register"&&wasGuest){guest.erase("webCsrf");guest["user"]=nullptr;save(fresh,guest);Statement q(db,"DELETE FROM clients WHERE id=?");q.text(1,old);q.step();}
+  accounts->logout(old);if(paired==old)paired.clear();return fresh;
+ }
+
  J action(const std::string& id,const J& a){
   exec("BEGIN IMMEDIATE");
   try{
-   J s=state(id);std::string op=a.at("op");J result=nullptr;
+   std::string subject=accounts->owner(id);if(a.contains("owner")){subject=a.at("owner");if(!accounts->admin(id)||!accounts->exists(subject))throw std::invalid_argument("Administrator access required");}J s=state(subject);std::string op=a.at("op");if(op=="logout"&&!accounts->user(id).is_null())throw std::invalid_argument("Use the account logout action");J result=nullptr;
    if(op=="kiosk.bind"){paired=id;}
    else if(op=="cart.add"||op=="cart.set"||op=="cart.remove"){
     std::string pid=a.at("productId"),v=a.value("variant",std::string());J p=product(pid);
@@ -83,22 +102,22 @@ struct Store {
      std::string payment=a.at("payment");if(payment!="COD"&&payment!="UPI"&&payment!="Card")throw std::invalid_argument("Invalid demo payment");
      if(s["cart"].empty())throw std::invalid_argument("Your cart is empty");
      for(auto& item:s["cart"]){auto p=product(item["product"]["id"]);int qty=item["quantity"];if(qty<1||qty>p["stock"].get<int>())throw std::invalid_argument("Stock changed; update cart");item["product"]=p;stock(p["id"],-qty);}
-     J o=totals(s["cart"]);o.update({{"id","SB-"+token()},{"userId",id},{"items",s["cart"]},{"discount",0},{"status","Placed"},{"paymentMethod",payment},{"paymentStatus",payment=="COD"?"Pending":"Paid"},{"shippingAddress",address},{"idempotencyToken",key},{"createdAt",now()},{"_payload",payload},{"timeline",J::array({{{"status","Placed"},{"timestamp",now()},{"note","C++ transactional checkout; simulated payment"}}})}});
+     J o=totals(s["cart"]);o.update({{"id","SB-"+token()},{"userId",accounts->owner(id)},{"items",s["cart"]},{"discount",0},{"status","Placed"},{"paymentMethod",payment},{"paymentStatus",payment=="COD"?"Pending":"Paid"},{"shippingAddress",address},{"idempotencyToken",key},{"createdAt",now()},{"_payload",payload},{"timeline",J::array({{{"status","Placed"},{"timestamp",now()},{"note","C++ transactional checkout; simulated payment"}}})}});
      s["orders"].insert(s["orders"].begin(),o);s["cart"]=J::array();result=o;
     }
    } else if(op=="order.state"){
     auto& orders=s["orders"];auto it=std::find_if(orders.begin(),orders.end(),[&](auto& o){return o["id"]==a.at("orderId");});if(it==orders.end())throw std::invalid_argument("Order not found");
-    std::string next=a.at("status"),old=(*it)["status"];std::vector<std::string> flow={"Placed","Confirmed","Packed","Shipped","Out for Delivery","Delivered"};
+    std::string next=a.at("status"),old=(*it)["status"];if(next!="Cancelled"&&!accounts->admin(id))throw std::invalid_argument("Only administrators can advance orders");std::vector<std::string> flow={"Placed","Confirmed","Packed","Shipped","Out for Delivery","Delivered"};
     auto pos=std::find(flow.begin(),flow.end(),old);
     if(next=="Cancelled"){if(old!="Placed"&&old!="Confirmed")throw std::invalid_argument("Cancellation unavailable");for(auto& x:(*it)["items"])stock(x["product"]["id"],x["quantity"]);if((*it)["paymentStatus"]=="Paid")(*it)["paymentStatus"]="Refunded";}
     else if(pos==flow.end()||std::next(pos)==flow.end()||*std::next(pos)!=next)throw std::invalid_argument("Invalid order transition");
     (*it)["status"]=next;(*it)["timeline"].push_back({{"status",next},{"timestamp",now()},{"note","Simulated tracking"}});result=true;
    } else if(op=="support.create"){
     if(a.contains("orderId")&&!a["orderId"].get<std::string>().empty()){bool found=false;for(auto& o:s["orders"])if(o["id"]==a["orderId"])found=true;if(!found)throw std::invalid_argument("Order not found");}
-    J t={{"id","TCK-"+token()},{"userId",id},{"type",a.at("type")},{"subject",a.at("subject")},{"message",a.at("message")},{"status","Open"},{"createdAt",now()}};if(a.contains("orderId"))t["orderId"]=a["orderId"];s["supportTickets"].push_back(t);
-   } else if(op=="support.reply"){bool found=false;for(auto& t:s["supportTickets"])if(t["id"]==a.at("ticketId")){t["adminReply"]=a.at("reply");t["status"]="In Progress";found=true;}if(!found)throw std::invalid_argument("Ticket not found");}
+    J t={{"id","TCK-"+token()},{"userId",accounts->owner(id)},{"type",a.at("type")},{"subject",a.at("subject")},{"message",a.at("message")},{"status","Open"},{"createdAt",now()}};if(a.contains("orderId"))t["orderId"]=a["orderId"];s["supportTickets"].push_back(t);
+   } else if(op=="support.reply"){if(!accounts->admin(id))throw std::invalid_argument("Administrator access required");bool found=false;for(auto& t:s["supportTickets"])if(t["id"]==a.at("ticketId")){t["adminReply"]=a.at("reply");t["status"]="In Progress";found=true;}if(!found)throw std::invalid_argument("Ticket not found");}
    else throw std::invalid_argument("Unknown action");
-   save(id,s);exec("COMMIT");return {{"state",view(s)},{"result",result}};
+   save(subject,s);exec("COMMIT");return {{"state",view(s)},{"result",result}};
   }catch(...){exec("ROLLBACK");throw;}
  }
 };
@@ -106,6 +125,7 @@ struct Store {
 int main(int argc,char** argv){
  try{
   if(sodium_init()<0)return 1;
+  if(argc==4&&std::string(argv[1])=="--make-admin"){Store local(argv[2]);local.accounts->promote(argv[3]);std::cout<<"Local account promoted to administrator\n";return 0;}
   Store store(argc>1?argv[1]:"sabka.sqlite");store.seed(argc>2?argv[2]:"backend/catalogue.json");
   sigset_t signals;sigemptyset(&signals);sigaddset(&signals,SIGINT);sigaddset(&signals,SIGTERM);pthread_sigmask(SIG_BLOCK,&signals,nullptr);
   httplib::Server server;server.set_payload_max_length(65536);
@@ -131,11 +151,19 @@ int main(int argc,char** argv){
    J results=J::array();for(auto& item:matches)results.push_back(item.second);
    res.set_content(results.dump(),"application/json");
   });
+  server.Post("/api/auth",[&](const httplib::Request& req,httplib::Response& res){
+   if(req.get_header_value("X-Sabka-Request")!="1"){res.status=403;return;}
+   try{std::lock_guard<std::mutex> lock(store.mutex);auto old=session(req,res);auto fresh=store.authenticate(old,J::parse(req.body));res.headers.erase("Set-Cookie");res.set_header("Set-Cookie","sb_session="+fresh+"; HttpOnly; SameSite=Strict; Path=/; Max-Age=3600");res.set_header("Cache-Control","no-store");res.set_content(store.view(store.state(fresh)).dump(),"application/json");}
+   catch(const std::exception& e){res.status=400;res.set_content(J({{"error",e.what()}}).dump(),"application/json");}
+  });
+  server.Get("/api/admin",[&](const httplib::Request& req,httplib::Response& res){
+   std::lock_guard<std::mutex> lock(store.mutex);auto id=session(req,res);if(!store.accounts->admin(id)){res.status=403;res.set_content(R"({"error":"Administrator login required"})","application/json");return;}res.set_header("Cache-Control","no-store");res.set_content(store.admin_view(id).dump(),"application/json");
+  });
   web::install(server,store,session);
   const std::string assets=argc>3?argv[3]:"public";
   if(assets!="-"&&!server.set_mount_point("/",assets))throw std::runtime_error("Static directory missing");
   if(!server.bind_to_port("127.0.0.1",8080))throw std::runtime_error("Port 8080 unavailable");
-  HelpBridge bridge(argc>4?argv[4]:"",[&](const std::string& source){std::lock_guard<std::mutex> lock(store.mutex);store.help(source);});
+  HelpBridge bridge(argc>4?argv[4]:"",[&](const std::string& source,const sabka_event& event){std::lock_guard<std::mutex> lock(store.mutex);store.help(source,event);});
   std::thread shutdown([&]{int signal=0;sigwait(&signals,&signal);server.stop();});
   std::cout<<"Sabka Bazaar C++ backend: http://127.0.0.1:8080\n"<<std::flush;
   server.listen_after_bind();pthread_kill(shutdown.native_handle(),SIGTERM);shutdown.join();

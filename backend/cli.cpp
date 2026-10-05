@@ -2,6 +2,7 @@
 #include <httplib.h>
 #include <nlohmann/json.hpp>
 #include <sys/stat.h>
+#include <termios.h>
 #include <fcntl.h>
 #include <unistd.h>
 #include <cerrno>
@@ -110,16 +111,39 @@ public:
         else if(c=="3"){action({{"op","kiosk.bind"}});std::cout<<"Paired this terminal session. Trigger FIFO, then open Help again.\n";}
     }
     void wishlist(){auto id=input("Product ID to toggle (blank = list): ");if(!id.empty())action({{"op","wishlist.toggle"},{"productId",id}});auto s=state();for(const auto& p:s.at("wishlist"))std::cout<<p.at("name").at("en").get<std::string>()<<'\n';}
+    void account(){
+        auto op=input("Account action (register/login/logout): ");Json payload={{"op",op}};
+        if(op!="logout"){
+            payload["email"]=input("Email: ");
+            struct EchoGuard {
+                termios before{};bool changed=false;
+                EchoGuard(){if(isatty(STDIN_FILENO)&&tcgetattr(STDIN_FILENO,&before)==0){auto after=before;after.c_lflag&=~ECHO;changed=tcsetattr(STDIN_FILENO,TCSAFLUSH,&after)==0;}}
+                ~EchoGuard(){if(changed)tcsetattr(STDIN_FILENO,TCSAFLUSH,&before);}
+            } guard;
+            payload["password"]=input("Password (10-128 bytes; hidden on terminal): ");std::cout<<'\n';
+        }
+        auto s=response(http_.Post("/api/auth",{{"Cookie",cookie_},{"X-Sabka-Request","1"}},payload.dump(),"application/json"));
+        std::cout<<(s["user"].is_null()?"Logged out":"Account session ready")<<'\n';
+    }
+    void administration(){
+        auto inbox=response(http_.Get("/api/admin",{{"Cookie",cookie_}}));std::cout<<inbox.dump(2)<<'\n';
+        auto op=input("1 Advance order  2 Reply to ticket  Enter to leave: ");if(op!="1"&&op!="2")return;
+        auto owner=input("Account owner ID from inbox: ");
+        if(op=="1"){auto order=input("Order ID: ");auto status=input("Next tracking state: ");action({{"op","order.state"},{"owner",owner},{"orderId",order},{"status",status}});}
+        else{auto ticket=input("Ticket ID: ");auto reply=input("Reply: ");action({{"op","support.reply"},{"owner",owner},{"ticketId",ticket},{"reply",reply}});}
+        std::cout<<"Administrator action saved\n";
+    }
+
     void remove(){auto id=input("Product ID to remove: ");action({{"op","cart.remove"},{"productId",id}});}
 };
 int main(){
     try {
         const char* custom=std::getenv("SABKA_SESSION_FILE");
         Shop shop(custom?custom:"/tmp/sabka-cli-"+std::to_string(getuid())+".session");
-        std::cout<<"\nSABKA BAZAAR — Native C++ / Linux\nSample catalogue, simulated payments and delivery. Anonymous session, not authentication.\n";
+        std::cout<<"\nSABKA BAZAAR — Native C++ / Linux\nSample catalogue, simulated payments and delivery. Guest shopping or password-protected account; administrator role required for order advancement.\n";
         while(true){
-            std::cout<<"\n1 Search catalogue   2 Add to cart   3 Cart   4 Remove item\n5 Checkout   6 Orders   7 Demo tracking / cancel   8 Wishlist\n9 Help / kiosk   0 Exit\n";
-            try{auto c=input("> ");if(c=="0")break;if(c=="1")shop.search();else if(c=="2")shop.add();else if(c=="3")shop.cart();else if(c=="4")shop.remove();else if(c=="5")shop.checkout();else if(c=="6")shop.orders();else if(c=="7")shop.changeOrder();else if(c=="8")shop.wishlist();else if(c=="9")shop.help();else std::cout<<"Choose 0-9\n";}
+            std::cout<<"\n1 Search catalogue   2 Add to cart   3 Cart   4 Remove item\n5 Checkout   6 Orders   7 Demo tracking / cancel   8 Wishlist\n9 Help / kiosk   10 Account   11 Administrator   0 Exit\n";
+            try{auto c=input("> ");if(c=="0")break;if(c=="1")shop.search();else if(c=="2")shop.add();else if(c=="3")shop.cart();else if(c=="4")shop.remove();else if(c=="5")shop.checkout();else if(c=="6")shop.orders();else if(c=="7")shop.changeOrder();else if(c=="8")shop.wishlist();else if(c=="9")shop.help();else if(c=="10")shop.account();else if(c=="11")shop.administration();else std::cout<<"Choose 0-11\n";}
             catch(const std::exception& e){if(std::string(e.what())=="INPUT_CLOSED")break;std::cerr<<"Error: "<<e.what()<<'\n';}
         }
     }catch(const std::exception& e){std::cerr<<e.what()<<'\n';return 1;}

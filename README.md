@@ -1,70 +1,81 @@
-# Sabka Bazaar — C++ / Linux Shopping Demonstration
+# Sabka Bazaar — Embedded Linux C/C++ Kiosk
 
 **Where every family finds its favourites**
 
-From daily essentials to little celebrations — sabke liye, sab kuch
+Sabka Bazaar is a Linux shopping-kiosk training project. Its server, terminal interface, browser-page renderer, account handling, tests and device utilities are C++17. Its Linux character driver is C. The terminal demonstration does not require a browser. The optional website uses C++-generated HTML and static CSS; no React, TypeScript, JavaScript, Node or Python is required.
 
-The active storefront is rendered by C++17. Ordinary HTML forms call the same C++/SQLite shopping logic used by the native terminal client. No Node, React, TypeScript, browser JavaScript or Python is needed to build or run this version. HTML and CSS remain presentation formats; JSON is catalogue data and Bash/CMake are build/test orchestration, so do not describe every repository file as C++.
+This is an embedded-Linux **application and device-interface prototype**, verified on Ubuntu/WSL x86-64. It has not been deployed to a physical embedded board and the kernel module has not been loaded. Do not claim physical GPIO or completed hardware verification.
 
-## Run on Ubuntu
-
-Install dependencies once if absent:
+## Build and run in Ubuntu
 
 ```bash
 sudo apt update
 sudo apt install build-essential cmake pkg-config libcpp-httplib-dev nlohmann-json3-dev libsqlite3-dev libsodium-dev libicu-dev
+cmake -S . -B build -DCMAKE_BUILD_TYPE=Debug
+cmake --build build -j2
+build/backend/sabka_diagnostics
+build/backend/sabka_backend backend/demo.sqlite backend/catalogue.json public --fifo
 ```
 
-From this repository's root in Ubuntu:
+In a second Ubuntu terminal, from this repository:
 
 ```bash
-cmake -S backend -B backend/build -DCMAKE_BUILD_TYPE=Debug
-cmake --build backend/build -j2
-backend/build/sabka_backend backend/demo.sqlite backend/catalogue.json public --fifo
+build/backend/sabka_cli
 ```
 
-Open **http://127.0.0.1:8080/**. Stop with Ctrl+C. The server is deliberately loopback-only. Run `backend/build/sabka_cli` in another Ubuntu terminal for the native C++ interface. Do not use the old npm commands or ports 3000–3004.
+Alternatively open http://127.0.0.1:8080/. The server binds only to loopback. Ctrl+C stops it gracefully. Existing `cmake -S backend -B backend/build` commands also remain supported.
 
-## Implemented
+## Native C++ demonstration
 
-- Existing 160-product catalogue and local branded photographs.
-- C++ Unicode-normalized alias search, department filter and price sorting.
-- Product pages, persistent session cart and wishlist; Add to Cart becomes Go to Cart.
-- Server-side stock checks, transactional demo checkout and duplicate-submit protection.
-- Orders, simulated tracking, eligible cancellation and stock restoration.
-- Persistent support tickets, demo profile and Easy Shopping controls.
-- Paired Linux help events using descriptors, poll, a worker thread and graceful signal shutdown.
-- HTML escaping, per-session form CSRF tokens and restrictive script-free page policy.
+1. Start the backend with `--fifo` (explicit userspace simulation).
+2. Run `sabka_cli`; select **10 Account** and register/login using a unique demo password.
+3. Select **1 Search**, enter `tej patta`, then add `prod-bay-leaf` using menu 2.
+4. Review cart and checkout using fictional details; payment and delivery are simulated.
+5. Menu 9 creates support tickets, pairs this session with kiosk 101 and retrieves help events.
+6. After pairing, run `build/backend/sabka_help_trigger --fifo` in a third terminal. Return to Help to see the targeted event.
+7. Restart the application and log in again to show database persistence.
 
-## Test
+## Accounts and administration
 
-Stop the demo server first, then:
+Registration/login use libsodium Argon2id password hashing. Only password hashes are stored. Random login tokens are hashed in SQLite, expire after one hour and are revoked at logout. Account data survives logout and is isolated between users. Five failed logins for an email cause a ten-minute lockout. Guest shopping remains supported. This is still a loopback training service, not a hardened public deployment; no email verification or password reset is provided.
+
+Register a separate demo administrator, stop the server, then deliberately promote that existing account using the local database-owner command:
 
 ```bash
-bash backend/test.sh
+build/backend/sabka_backend --make-admin backend/demo.sqlite your-demo-admin@example.test
 ```
 
-This launches isolated test databases and C++ test executables. Tests cover checkout, quantity bounds, stock, session isolation, cancellation, support, alias search, FIFO targeting, restart persistence, CLI flow and HTML forms. It does not load a kernel module.
+Restart and log in to that account. Browser: Account → Administrator workspace. Terminal: menu 11. Administrators can advance **registered-account** orders and reply to registered-account support tickets. Shoppers can cancel their own eligible orders but cannot advance fulfilment. No web request can grant the admin role. Product editing and guest-ticket admin management remain pending.
 
-## Architecture and files
+## Embedded Linux components
 
-- `backend/server.cpp`: HTTP routes, SQLite storage and transaction rules.
-- `backend/web.hpp`: C++ page renderer and form controllers.
-- `backend/cli.cpp`: native C++ terminal UI.
-- `backend/search.hpp`: ICU normalization.
-- `backend/help_bridge.hpp`, `backend/help_trigger.cpp`: Linux userspace event integration.
-- `backend/smoke.cpp`, `backend/web_smoke.cpp`: compiled integration tests.
-- `backend/catalogue.json`: preserved catalogue, translations/aliases and photo references.
-- `public/store.css`, `public/images/`: presentation and preserved product photographs.
-- `embedded/driver/sabka_help_driver.c`: educational C character-device source.
-- `docs/`: historical implementation notes and evidence; this README and PROJECT_STATUS.md describe the current run path.
+- `embedded/driver/sabka_help_driver.c`: C character device, cdev registration, wait queue, read/write/poll, kernel/userspace copy and module cleanup.
+- `embedded/driver/sabka_help_protocol.h`: shared 48-byte C/C++ event ABI.
+- `backend/help_bridge.hpp`: RAII descriptor, nonblocking I/O, poll, worker thread, validated events and graceful shutdown.
+- `backend/help_trigger.cpp`: explicit FIFO or kernel-device write utility.
+- `backend/device_test.cpp`: real-device read/write/poll/backpressure test, compiled but not executed against a loaded module here.
+- `backend/diagnostics.cpp`: compiled Linux readiness report.
+- `embedded/systemd/sabka-bazaar.service`: optional per-user service; not installed or enabled automatically.
 
-SQLite stores session documents and authoritative product stock. Seeding inserts missing IDs without resetting existing stock. Keep runtime databases/cookies out of Git. Payments, delivery, prices and stock are demonstrations, not live commercial services.
+The current WSL kernel lacks `/lib/modules/<running-kernel>/build`. Real module build/load remains outstanding. See [embedded deployment](docs/EMBEDDED_LINUX.md), including matching-host requirements and the native versus simulated boundary.
 
-## Limits to present honestly
+## Tests
 
-Profiles are not authenticated accounts. Secure login, session expiration and protected administrator functions remain pending. The English interface offers catalogue language selection, but many product translations fall back to English and need human review. Browser voice is unavailable in the JavaScript-free interface. Help events appear on page refresh; they do not automatically open a browser panel. Buy Now adds the item and opens checkout for the current cart. The catalogue is 160 products, not 200 per subcategory. No real payments, courier, agent, SMS or AI chatbot is connected.
+Stop the demo server first:
 
-The C driver has **not** been compiled/loaded on the current WSL kernel because matching kernel build files are absent. FIFO testing does not satisfy the real driver demonstration. Use a compatible Linux host to complete that requirement; do not change the kernel just to hide this limitation.
+```bash
+ctest --test-dir build --output-on-failure
+SABKA_BUILD_DIR=build/backend bash backend/test.sh
+```
 
-The previous React implementation is recoverable at commit `bf91a2bd4b1c729f9e68c8ea68d815c399acc573` and local branch `backup/before-server-rendered-cpp`. This conversion replaces the active interface, rather than disguising TypeScript as C++.
+C++ tests cover stock/quantity validation, idempotent checkout, cancellation, session isolation, Unicode aliases, support, FIFO targeting, event framing, account hashing/login/logout/expiry, forbidden admin operations, browser forms, escaped output and restart persistence. Kernel module tests are a separate outstanding requirement.
+
+## Layout and libraries
+
+`backend/`: C++ application, CLI, tests, catalogue and CMake. `public/`: preserved branded product images, static CSS and credits. `embedded/driver/`: C module/shared protocol. `embedded/systemd/`: deployment unit. `docs/`: architecture, evidence and historical notes. See AGENTS.md and PROJECT_STATUS.md before continuing work.
+
+cpp-httplib handles HTTP; SQLite provides prepared statements/transactions; nlohmann-json stores structured data; ICU normalizes Unicode search; libsodium provides password hashing and random tokens; POSIX/C++ threads implement Linux event handling. CMake, Make, Bash test orchestration, JSON data, HTML/CSS and documentation are not falsely labelled C++.
+
+## Honest limitations
+
+160 sample products, not 200 per subcategory. Prices/stock/payment/tracking are demonstrations. Product language selection preserves existing translations/aliases, but full interface translation and human review remain pending. No browser voice or real AI/chat/SMS/callback. Help is retrieved on refresh/menu access; there is no automatic browser popup. Some advanced variant/address/admin-product controls remain unfinished. No physical board/GPIO tests or real driver load has been completed. The previous React implementation remains recoverable in Git history at bf91a2b.
