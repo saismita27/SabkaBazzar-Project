@@ -1,7 +1,5 @@
 # Sabka Bazaar — C++ Linux shopping backend and multilingual storefront
 
-## Current implementation (October 4, 2026)
-
 The existing visual storefront is preserved. The new **C++17 Linux backend** performs catalogue search, cart validation, price calculations, transactional checkout, stock changes, order transitions, wishlist, address and support persistence. SQLite is authoritative in C++ mode.
 
 **This repository is still mixed-language:** the UI uses React/TypeScript, HTML and CSS. It does not satisfy a strict “only C/C++” rule without a trainer-approved UI exception. No 80% claim is made. Profiles and administrator controls are local demonstrations, not production authentication.
