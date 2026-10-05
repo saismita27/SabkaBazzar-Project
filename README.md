@@ -70,6 +70,85 @@ The C++ smoke client checks invalid quantities, checkout, duplicate prevention, 
 - embedded/driver/sabka_help_driver.c: C device driver source with wait queue, poll and copy_to_user.
 - docs/CPP_MIGRATION.md: architecture, evidence and limitations.
 
+
+
+## Project Architecture
+
+Sabka Bazaar currently follows a layered local-demo architecture. The existing React/TypeScript storefront is preserved as the presentation layer, while the main shopping operations are handled by the C++17 backend running on Linux.
+
+```text
+                         SABKA BAZAAR ARCHITECTURE
+
+┌──────────────────────────────────────────────────────────────┐
+│                         USER / BROWSER                       │
+│                                                              │
+│  Login/Profile Demo │ Search │ Categories │ Cart │ Wishlist  │
+│  Checkout │ Orders │ Support │ Language UI │ Easy Shopping   │
+└───────────────────────────────┬──────────────────────────────┘
+                                │
+                                ▼
+┌──────────────────────────────────────────────────────────────┐
+│                    FRONTEND / PRESENTATION LAYER             │
+│                                                              │
+│  React + TypeScript + HTML + CSS                             │
+│  Existing visual storefront                                  │
+│                                                              │
+│  src/backend/useCppStore.ts                                  │
+│  • Sends requests to the C++ backend                         │
+│  • Receives shopping data                                    │
+│  • Polls for Linux help events                               │
+└───────────────────────────────┬──────────────────────────────┘
+                                │
+                         HTTP / JSON requests
+                                │
+                                ▼
+┌──────────────────────────────────────────────────────────────┐
+│                    C++17 APPLICATION LAYER                   │
+│                                                              │
+│  backend/server.cpp                                          │
+│                                                              │
+│  • HTTP request handling                                     │
+│  • Session management                                        │
+│  • Product catalogue access                                  │
+│  • Cart validation                                           │
+│  • Wishlist operations                                       │ 
+│  • Price calculation                                         │
+│  • Checkout                                                  │
+│  • Stock updates                                             │
+│  • Order state transitions                                   │
+│  • Address persistence                                       │
+│  • Support ticket persistence                                │
+│  • Business-rule validation                                  │
+└───────────────┬───────────────────────┬──────────────────────┘
+                │                       │
+                ▼                       ▼
+┌──────────────────────────┐   ┌──────────────────────────────┐
+│      SEARCH MODULE       │   │       LINUX HELP MODULE      │
+│                          │   │                              │
+│ backend/search.hpp       │   │ backend/help_bridge.hpp      │
+│                          │   │                              │
+│ • Unicode normalization  │   │ • Linux file descriptors     │
+│ • ICU NFKC case-folding  │   │ • poll()/read()              │
+│ • Alias matching         │   │ • FIFO/device mode           │
+│ • Exact ranking          │   │ • Worker lifecycle           │
+│ • Prefix ranking         │   │ • Graceful shutdown          │
+│ • Substring ranking      │   │                              │
+└───────────────┬──────────┘   └──────────────┬───────────────┘
+                │                             │
+                ▼                             ▼
+┌──────────────────────────┐   ┌──────────────────────────────┐
+│        SQLite DB         │   │  EMBEDDED / DEVICE LAYER     │
+│                          │   │                              │
+│ • Sessions               │   │ FIFO simulator               │
+│ • Products               │   │ /tmp/.../help.fifo           │
+│ • Product stock          │   │                              │
+│ • Cart                   │   │ OR                           │
+│ • Wishlist               │   │                              │
+│ • Orders                 │   │ /dev/sabka_help              │
+│ • Addresses              │   │ Linux C driver source        │
+│ • Support records        │   │                              │
+└──────────────────────────┘   └──────────────────────────────┘
+
 ## Design and limits
 
 Sessions use a random libsodium-generated HttpOnly, SameSite cookie. This isolates browser sessions, but does not verify identity. There is no password authentication or protected administrator role. Support replies and order advancement remain simulation controls scoped to the same session. Loopback-only, for a local demo; do not expose this server publicly.
