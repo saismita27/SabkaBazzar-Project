@@ -556,3 +556,232 @@ main>.filters button{
   }
   main>.filters button{width:100%}
 }
+
+
+/* Global density pass to match compact reference layout */
+:root{font-size:15px}
+
+.reference-header{
+  padding:12px 32px 10px!important;
+  gap:14px!important;
+}
+.reference-header .brand{font-size:24px!important}
+.brand-logo{width:50px!important;height:50px!important;font-size:31px!important;border-radius:15px!important}
+.brand small{font-size:12px!important;max-width:360px!important}
+.header-tools{gap:8px!important;min-height:44px!important}
+.header-tools button,
+.help-button,
+.cart-pill,
+.account-pill,
+.language-menu summary{
+  min-height:42px!important;
+  font-size:13px!important;
+  padding:8px 12px!important;
+}
+.easy-toggle{height:42px!important}
+.wishlist-icon{width:42px!important;height:42px!important}
+.wishlist-icon .ui-icon{width:25px!important;height:25px!important}
+.language-menu{min-width:132px!important}
+.language-menu summary{gap:7px!important}
+.reference-header .search{
+  padding:3px 5px 3px 16px!important;
+  gap:10px!important;
+}
+.reference-header .search input{
+  font-size:16px!important;
+  padding:7px 0!important;
+}
+.reference-header .search button{width:40px!important;height:40px!important}
+.reference-header .voice-entry{height:40px!important;min-width:40px!important;font-size:21px!important}
+
+.demo-strip{
+  font-size:12px!important;
+  padding:9px 16px!important;
+}
+.departments{
+  padding:10px 28px!important;
+  gap:12px!important;
+}
+.departments a{
+  padding:9px 14px!important;
+  font-size:13px!important;
+  border-radius:15px!important;
+}
+.category-icon .ui-icon{width:23px!important;height:23px!important}
+
+main{
+  padding-left:28px!important;
+  padding-right:28px!important;
+}
+.reference-hero{
+  min-height:380px!important;
+  padding:34px 28px!important;
+  gap:30px!important;
+}
+.reference-hero h1{
+  font-size:clamp(30px,2.45vw,43px)!important;
+  line-height:1.18!important;
+  margin:18px 0 12px!important;
+  max-width:560px!important;
+}
+.reference-hero p{font-size:15px!important}
+.hero-copy>small{font-size:12px!important}
+.hero-buttons{
+  margin:18px 0 14px!important;
+  gap:10px!important;
+}
+.hero-buttons a{
+  font-size:14px!important;
+  padding:12px 18px!important;
+}
+.alias-examples{font-size:12px!important}
+.alias-examples a{padding:7px 12px!important}
+
+.hero-showcase{gap:14px!important}
+.hero-tile{
+  padding:13px!important;
+  border-radius:18px!important;
+  gap:8px!important;
+}
+.hero-tile>span{font-size:12px!important}
+.hero-tile>div{padding:6px!important}
+.hero-tile img{height:150px!important}
+.hero-tile strong{font-size:14px!important}
+
+#products{
+  font-size:25px!important;
+  margin-top:16px!important;
+  margin-bottom:4px!important;
+}
+.grid{
+  gap:18px!important;
+}
+.reference-card{
+  padding:13px!important;
+  border-radius:18px!important;
+}
+.card-media{
+  height:235px!important;
+  margin-bottom:12px!important;
+}
+.reference-card .card-media img{
+  padding:9px!important;
+  border-radius:14px!important;
+}
+.reference-card h3{
+  font-size:15px!important;
+  line-height:1.3!important;
+  min-height:38px!important;
+}
+.rating-line b{font-size:12px!important}
+.rating-line small{font-size:10px!important}
+.reference-card .pricing{margin:10px 0 5px!important}
+.reference-card .pricing strong{font-size:20px!important}
+.reference-card .pricing del,
+.reference-card .saving{font-size:10px!important}
+.reference-card .stock{
+  font-size:12px!important;
+  margin:5px 0 12px!important;
+}
+.reference-card .actions{
+  gap:7px!important;
+}
+.reference-card .actions button,
+.reference-card .actions>.button{
+  font-size:12px!important;
+  min-height:38px!important;
+  padding:8px 5px!important;
+  border-radius:13px!important;
+}
+.card-brand{font-size:10px!important;padding:4px 7px!important}
+.wish-control,.read-control{padding:7px!important}
+
+main>.filters{
+  margin:10px 0 14px!important;
+}
+main>.filters select{
+  min-height:40px!important;
+  padding:8px 34px 8px 11px!important;
+  font-size:13px!important;
+}
+main>.filters button{
+  min-height:40px!important;
+  padding:8px 15px!important;
+  font-size:13px!important;
+}
+main>.filters label{font-size:12px!important}
+
+.product-dialog{
+  width:min(980px,calc(100vw - 90px))!important;
+  max-height:calc(100dvh - 80px)!important;
+}
+.product-dialog-top{padding:12px 20px!important}
+.product-dialog-scroll{padding:18px!important}
+.product-detail{gap:18px!important}
+.product-image{padding:14px!important}
+.product-image img{max-height:285px!important}
+.product-detail h1{font-size:20px!important}
+.detail-price{padding:11px 14px!important}
+.detail-price .pricing strong{font-size:28px!important}
+.product-description{font-size:13px!important}
+.product-source{font-size:13px!important;margin-top:12px!important}
+.product-detail .aliases{padding:10px 12px!important;margin-top:12px!important}
+.aliases h3{font-size:13px!important}
+.aliases span{font-size:10px!important}
+.service-notes{font-size:16px!important;padding:9px 0!important}
+.service-notes small{font-size:9px!important}
+.product-detail .actions button,
+.product-detail .actions>.button{
+  min-height:42px!important;
+  font-size:14px!important;
+  border-radius:14px!important;
+  padding:9px!important;
+}
+
+.auth-layout{width:min(610px,100%)!important}
+.auth-top{padding:15px 18px!important}
+.auth-top .brand-logo{width:48px!important;height:48px!important;font-size:30px!important}
+.auth-top strong{font-size:24px!important}
+.auth-top small{font-size:12px!important}
+.auth-scroll{padding:17px!important}
+.auth-story{padding:15px!important;margin-bottom:15px!important}
+.auth-story h1{font-size:18px!important}
+.auth-story p{font-size:13px!important}
+.auth-tabs{gap:22px!important;margin-bottom:15px!important}
+.auth-tabs a{font-size:13px!important;padding-bottom:9px!important}
+.auth-form label{font-size:13px!important;margin:8px 0!important}
+.auth-form input{padding:11px 12px!important;font-size:14px!important}
+.auth-form button{padding:13px!important;font-size:15px!important}
+.auth-form .muted{padding:12px 14px!important;font-size:11px!important}
+
+.voice-dialog{
+  width:min(520px,calc(100vw - 28px))!important;
+  padding:26px 28px!important;
+}
+.voice-mic{width:72px!important;height:72px!important}
+.voice-dialog h1{font-size:27px!important}
+.voice-lead{font-size:14px!important}
+.voice-start button{font-size:15px!important;padding:14px!important}
+.voice-note{font-size:11px!important}
+
+.cart-drawer{width:min(560px,100vw)!important}
+.cart-drawer>header{padding:16px 24px!important}
+.cart-drawer>header h1{font-size:21px!important}
+.delivery-progress{padding:12px 24px!important}
+.cart-items{padding:20px 24px!important}
+.cart-item{
+  grid-template-columns:95px 1fr auto!important;
+  gap:13px!important;
+  padding:13px!important;
+}
+.cart-item img{width:86px!important;height:86px!important}
+.cart-item-info h3{font-size:15px!important}
+.cart-item-info strong{font-size:15px!important}
+.cart-summary{padding:18px 24px!important}
+
+footer{padding:22px!important;font-size:12px!important}
+
+@media(max-width:1200px){
+  .reference-hero{grid-template-columns:1.05fr .95fr!important}
+  .hero-tile img{height:135px!important}
+}
