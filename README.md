@@ -2,7 +2,8 @@
 
 **Where every family finds its favourites**
 
-Sabka Bazaar is a Linux shopping-kiosk training project. Its server, terminal interface, browser-page renderer, account handling, tests and device utilities are C++17. Its Linux character driver is C. The terminal demonstration does not require a browser. The optional website uses C++-generated HTML and static CSS; no React, TypeScript, JavaScript, Node or Python is required.
+Sabka Bazaar is a Linux shopping-kiosk training project. Its server, terminal interface, browser-page renderer, account handling, tests and device utilities are C++17. Its Linux character driver is C. The terminal demonstration does not require a browser. The optional website uses C++-generated HTML and static CSS.
+
 
 This is an embedded-Linux **application and device-interface prototype**, verified on Ubuntu/WSL x86-64. It has not been deployed to a physical embedded board and the kernel module has not been loaded. Do not claim physical GPIO or completed hardware verification.
 
