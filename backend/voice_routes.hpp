@@ -72,9 +72,9 @@ inline void install(httplib::Server& server,Store& store,std::function<std::stri
     else message="Local recognition failed or timed out. Listen to the recording or type your search.";
    }
   }
-  std::string h="<!doctype html><html><meta charset='utf-8'><meta name='viewport' content='width=device-width,initial-scale=1'><title>Voice search review</title><link rel='stylesheet' href='/store.css'><main><section class='panel'><h1>Voice search — PROTOTYPE</h1><p>"+web::esc(message)+"</p>";
-  if(!audio.empty())h+="<audio controls src='data:audio/wav;base64,"+base64(audio)+"'></audio><p>Temporary server audio is deleted after this response. This page contains the recording until you close it.</p>";
-  h+="<form action='/'><label>Review or type your search<input name='q' maxlength='2000' value='"+web::esc(text)+"'></label><button>Search reviewed text</button></form><a href='/voice'>Back to voice search</a></section></main></html>";
+  std::string h="<!doctype html><html><meta charset='utf-8'><meta name='viewport' content='width=device-width,initial-scale=1'><title>Voice search review</title><link rel='stylesheet' href='/store.css'><main><section class='panel voice-review'><div class='voice-mic'>🎙</div><p class='voice-eyebrow'>VOICE SEARCH REVIEW</p><h1>Review what I heard</h1><p class='voice-note'>"+web::esc(message)+"</p>";
+  if(!audio.empty())h+="<audio controls src='data:audio/wav;base64,"+base64(audio)+"'></audio>";
+  h+="<form action='/'><label>Recognized text<input name='q' maxlength='2000' value='"+web::esc(text)+"' placeholder='Type or correct the product name'></label><button>Search this →</button></form><p><a href='/voice'>← Try voice search again</a></p></section></main></html>";
   res.set_header("Cache-Control","no-store");res.set_header("Content-Security-Policy","default-src 'none'; style-src 'self'; media-src data:; form-action 'self'; base-uri 'none'; frame-ancestors 'none'");res.set_content(h,"text/html; charset=utf-8");
  });
 }
