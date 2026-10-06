@@ -6,6 +6,137 @@ Sabka Bazaar is a Linux shopping-kiosk training project. Its server, terminal in
 
 This is an embedded-Linux **application and device-interface prototype**, verified on Ubuntu/WSL x86-64. It has not been deployed to a physical embedded board and the kernel module has not been loaded. Do not claim physical GPIO or completed hardware verification.
 
+
+## Project architecture
+
+Sabka Bazaar follows a layered C++/Linux architecture in which the browser is only the presentation surface and the main application logic remains in native C++.
+
+```text
+                    ┌────────────────────────────┐
+                    │        User / Shopper      │
+                    │ Browser UI or C++ CLI      │
+                    └─────────────┬──────────────┘
+                                  │
+                 HTML/CSS forms   │   terminal commands
+                                  ▼
+                    ┌────────────────────────────┐
+                    │      C++ Application       │
+                    │  cpp-httplib HTTP server   │
+                    │  C++ page renderer / CLI   │
+                    └─────────────┬──────────────┘
+                                  │
+        ┌─────────────────────────┼─────────────────────────┐
+        ▼                         ▼                         ▼
+┌──────────────────┐   ┌────────────────────┐   ┌────────────────────┐
+│ Shopping modules │   │ Account / security │   │ Linux help / voice │
+│ Search           │   │ Login / sessions   │   │ FIFO or /dev input │
+│ Cart / wishlist  │   │ Admin role         │   │ poll/read/write     │
+│ Checkout / order │   │ libsodium hashing  │   │ local audio tools   │
+│ Support/tracking │   └──────────┬─────────┘   └──────────┬─────────┘
+└─────────┬────────┘              │                        │
+          └───────────────────────┼────────────────────────┘
+                                  ▼
+                    ┌────────────────────────────┐
+                    │      SQLite database       │
+                    │ products, users, sessions, │
+                    │ cart/order/support state   │
+                    └─────────────┬──────────────┘
+                                  │
+                                  ▼
+                    ┌────────────────────────────┐
+                    │ Embedded Linux interface   │
+                    │ C character driver / FIFO  │
+                    │ shared event protocol      │
+                    └────────────────────────────┘
+```
+
+### Architecture flow
+
+1. The shopper interacts either with the browser storefront or with the native C++ terminal client.
+2. Browser requests are received by the C++ HTTP server built with cpp-httplib.
+3. C++ business logic handles authentication, search, cart, wishlist, checkout, orders, support and administrator operations.
+4. SQLite stores persistent application data and is treated as the authoritative data store.
+5. ICU-based normalization improves Unicode/familiar-name search such as `tej patta` → the Bay Leaf product entry.
+6. Linux/POSIX components handle file descriptors, FIFO/device access, polling, threads and help-event delivery.
+7. The embedded side can use either the explicit FIFO simulator or the C character-device interface. The FIFO path is the verified WSL demonstration path; the real kernel module remains unverified on this machine.
+
+## Core project logic
+
+The main project logic is implemented in C++17.
+
+### Search and multilingual/familiar-name logic
+
+- Product records contain standard catalogue names plus aliases/local names.
+- User input is normalized using ICU Unicode processing before matching.
+- Search uses exact, prefix and substring ranking so familiar terms such as `tej patta`, `haldi` and similar aliases can resolve to the appropriate catalogue product.
+- English/Hindi/Odia interface and alias support are present in the current demonstration, while complete translation review remains pending.
+- Product search, filtering and sorting are executed in the C++ application rather than JavaScript.
+
+### Account and session logic
+
+- Registration/login, sessions and role checks are implemented in C++.
+- libsodium is used for password hashing/random token generation where the account-authentication path requires it.
+- Session/account data is persisted in SQLite.
+- Guest shopping is supported alongside registered-user flows.
+- Administrator privileges are granted only through the explicit local database-owner command, not through a browser form.
+
+### Shopping logic
+
+- Product data is loaded from the catalogue/SQLite layer.
+- Cart operations validate product IDs, stock and quantities on the server.
+- Wishlist state is stored per session/account.
+- Checkout recalculates prices on the server and does not trust a price sent from the browser.
+- Order creation, stock updates and order-state transitions are handled in C++ and persisted in SQLite.
+- Buy Now uses a separate selected-product checkout path so the existing cart is not consumed.
+- Payment, delivery and tracking remain demonstrations; no real payment gateway or courier service is connected.
+
+### Linux / embedded logic
+
+- The application listens for help events through either a FIFO simulator or the `/dev/sabka_help` character-device path.
+- `poll()`, nonblocking file descriptors and C++ worker threads are used for event handling.
+- A shared C/C++ protocol structure carries device/help-event data between kernel/userspace-facing components.
+- The C driver demonstrates character-device registration, wait queues, read/write/poll and userspace copy operations.
+- On WSL, the FIFO simulator is the verified path because the current WSL kernel does not provide the matching module build tree.
+
+### Voice and read-aloud logic
+
+- Voice Search is implemented as a local Linux/C++ prototype.
+- WAV transcription can use whisper.cpp when a local engine/model is configured.
+- Live microphone capture depends on Linux audio availability such as `alsa-utils` and has not been fully verified on this setup.
+- Product read-aloud can use native eSpeak NG and return audio without browser JavaScript.
+- Typed search remains available whenever microphone/audio support is unavailable.
+
+## Languages and technologies used
+
+| Area | Language / Technology | Role in Sabka Bazaar |
+| --- | --- | --- |
+| Main application | **C++17** | HTTP server, business logic, page rendering, CLI, tests, search, cart, checkout, orders, support and admin logic |
+| Linux device driver | **C** | Character-device prototype and shared low-level kernel/userspace interface |
+| Web presentation | **HTML5** | Browser page structure generated by the C++ server |
+| Styling | **CSS3** | Storefront layout, responsive design, login/cart/product/voice UI |
+| Database | **SQLite3** | Persistent products, stock, accounts, sessions, orders, support and application state |
+| Operating environment | **Ubuntu on WSL** | Primary Linux build/run/test environment used for this project |
+| Build system | **CMake** | Configures and builds the C/C++ targets |
+| Compiler/toolchain | **g++ / GCC, Make** | Native Linux compilation and build execution |
+| HTTP library | **cpp-httplib** | Lightweight C++ HTTP server and request handling |
+| JSON library | **nlohmann-json** | Catalogue/configuration/structured-data handling |
+| Unicode/search | **ICU** | Unicode normalization and multilingual/familiar-name search support |
+| Security library | **libsodium** | Argon2id password hashing and random session/token generation |
+| Linux APIs | **POSIX / Linux system calls** | file descriptors, `poll()`, FIFO/device I/O, process/thread interaction |
+| Concurrency | **C++ threads** | Background Linux help/event handling |
+| Voice prototype | **whisper.cpp** | Optional local speech-to-text transcription |
+| Read aloud | **eSpeak NG** | Native local text-to-speech for product read-aloud |
+| Audio utilities | **ALSA / alsa-utils** | Local Linux microphone/audio capture support when available |
+| Data files | **JSON** | Seed catalogue and structured product metadata |
+| Test orchestration | **Bash / CTest** | Automated build/integration/smoke-test execution |
+| Version control | **Git + GitHub** | Source control, development branches, backup branches and project submission |
+| Editor / development environment | **VS Code + WSL terminal** | Source editing, Linux terminal access, build and debugging workflow |
+
+### Language boundary
+
+The current final implementation does **not** depend on React, TypeScript, JavaScript, Node.js, Python or Java for its application logic. The browser interface is produced by the C++ server as HTML and uses static CSS for presentation. C is retained only for the Linux kernel-driver component, where kernel-level C is appropriate.
+
+
 ## Build and run in Ubuntu
 
 ```bash
