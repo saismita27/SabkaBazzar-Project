@@ -386,3 +386,125 @@
  .voice-dialog h1{font-size:26px}
  .voice-mic{width:72px;height:72px}
 }
+
+
+/* Header alignment normalization */
+.reference-header{align-items:flex-start}
+.header-tools{
+  display:flex;
+  align-items:center;
+  justify-content:flex-end;
+  gap:12px;
+  margin-left:auto;
+  min-height:52px;
+}
+.header-tools>form,
+.header-tools>.language-menu,
+.header-tools>.help-button,
+.header-tools>.wishlist-icon,
+.header-tools>.cart-pill,
+.header-tools>.account-pill,
+.header-tools>.orders-link{
+  align-self:center;
+  margin-top:0;
+  margin-bottom:0;
+}
+.header-tools button,
+.help-button,
+.cart-pill,
+.account-pill,
+.language-menu summary{
+  min-height:48px;
+  line-height:1;
+  box-sizing:border-box;
+}
+.header-tools button,
+.help-button,
+.cart-pill,
+.account-pill{
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+}
+.easy-toggle{height:48px}
+.language-menu{
+  display:flex;
+  align-items:center;
+  min-width:145px;
+}
+.language-menu summary{
+  width:100%;
+  display:flex!important;
+  align-items:center!important;
+  justify-content:flex-start;
+  gap:9px;
+  padding:10px 13px;
+}
+.language-menu summary>.ui-icon{display:block}
+.language-menu summary span{
+  float:none!important;
+  margin-left:auto!important;
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  line-height:1;
+  transform:none!important;
+  position:static!important;
+}
+.wishlist-icon{
+  width:48px;
+  height:48px;
+  padding:0!important;
+  display:inline-flex!important;
+  align-items:center!important;
+  justify-content:center!important;
+  line-height:1;
+  box-sizing:border-box;
+}
+.wishlist-icon .ui-icon{
+  width:29px;
+  height:29px;
+  display:block;
+}
+.help-button .ui-icon,
+.cart-pill .ui-icon,
+.account-pill .ui-icon,
+.easy-toggle .ui-icon{
+  display:block;
+}
+.cart-pill small{
+  display:inline-flex;
+  align-items:center;
+  line-height:1;
+  margin:0;
+}
+.orders-link{
+  display:inline-flex;
+  align-items:center;
+  min-height:48px;
+  line-height:1;
+}
+.reference-header .search{
+  align-items:center!important;
+}
+.reference-header .search>span,
+.reference-header .voice-entry,
+.reference-header .search>button{
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  line-height:1;
+}
+.reference-header .voice-entry{
+  height:42px;
+  min-width:42px;
+  padding:0 8px!important;
+}
+.reference-header .search button .ui-icon,
+.reference-header .voice-entry .ui-icon,
+.reference-header .search>span .ui-icon{
+  display:block;
+}
+@media(max-width:1300px){
+  .header-tools{gap:8px}
+}
