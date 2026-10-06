@@ -275,3 +275,38 @@
     max-height:260px;
   }
 }
+
+
+/* Mobile-first demo authentication fields */
+.auth-form .mobile-field{
+  display:flex;
+  align-items:stretch;
+  margin-top:6px;
+  border:1px solid #c5d4e7;
+  border-radius:14px;
+  overflow:hidden;
+  background:#fff;
+}
+.auth-form .mobile-field b{
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  min-width:68px;
+  padding:0 14px;
+  background:#f3f7fb;
+  color:#40516c;
+  border-right:1px solid #c5d4e7;
+  font-size:15px;
+}
+.auth-form .mobile-field input{
+  margin:0!important;
+  border:0!important;
+  border-radius:0!important;
+  flex:1;
+  min-width:0;
+  box-shadow:none;
+}
+.auth-form .mobile-field:focus-within{
+  outline:3px solid #2459be;
+  outline-offset:2px;
+}
