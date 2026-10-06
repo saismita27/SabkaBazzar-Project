@@ -9,6 +9,9 @@ std::string value(const std::string& page,const std::string& key){std::smatch m;
 int main(){try{
  httplib::Client c("127.0.0.1",8080);auto r=c.Get("/");check(r&&r->status==200,"C++ homepage responds");check(r->body.find("<script")==std::string::npos,"no browser scripts");check(r->body.find("Where every family finds its favourites")!=std::string::npos,"approved branding");auto cookie=r->get_header_value("Set-Cookie");cookie=cookie.substr(0,cookie.find(';'));httplib::Headers h={{"Cookie",cookie}};auto csrf=value(r->body,"csrf");
  auto post=[&](httplib::Params p,int status=303){p.emplace("csrf",csrf);auto x=c.Post("/shop/action",h,p);check(x&&x->status==status,"form action status");return x;};
+ for(const auto* code:{"en","hi","or","mr","bn","ta","te","gu"})check(r->body.find(std::string("name='language' value='")+code+"'")!=std::string::npos,"reference language menu option");
+ check(r->body.find("hero-showcase")!=std::string::npos,"reference hero photo cards");
+ auto authPage=c.Get("/account",h);check(authPage&&authPage->body.find("auth-overlay")!=std::string::npos&&authPage->body.find("aria-label='Close login'")!=std::string::npos,"closable reference account panel");
  auto asset=c.Get("/store.css");check(asset&&asset->status==200,"local stylesheet served");asset=c.Get("/images/grocery-brands/prod-bay-leaf.jpg");check(asset&&asset->status==200,"preserved local product photo served");
  auto all=c.Get("/api/products");check(all&&all->status==200,"full catalogue available");for(const auto& product:J::parse(all->body)){auto image=c.Get(product["imageUrl"].get<std::string>());if(!image||image->status!=200)throw std::runtime_error("Missing image: "+product["id"].get<std::string>());}check(true,"all catalogue image paths load from project root");
  auto bad=c.Post("/shop/action",h,httplib::Params{{"op","cart.add"}});check(bad&&bad->status==403,"form CSRF rejection");

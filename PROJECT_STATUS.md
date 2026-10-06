@@ -48,3 +48,9 @@ Latest verification: all shopping/account/FIFO/restart regression checks and CTe
 ## October 6 search checkpoint
 
 Shared C++ search ranking now prioritizes normalized canonical names, literal exact aliases, normalized aliases, prefixes, substrings, then brand discovery. Browser and JSON API use the same function. Category/subcategory and selected price sort persist in sorting forms. New compiled fixtures cover ranking tiers, Hindi/Odia aliases, Unicode compatibility, whitespace and no-match cases. All eleven executables built; both CTest checks and the full shopping/account/FIFO/restart integration suite passed. Evidence: /tmp/tmp.RSKSjDcp7N (temporary). Microphone tools and matching kernel build tree are still absent.
+
+## October 6 screenshot theme restoration
+
+Recreated the reference's dark delivery strip, gradient logo/buttons, two-row header, full-width search, horizontal department pills, cream split hero and three preserved product-photo tiles. Added the eight-language dropdown (English, Hindi, Odia, Marathi, Bengali, Tamil, Telugu, Gujarati) using existing local translation tables and C++ session forms. Login/register now uses the brown/orange scrollable overlay style with a fixed close header; actual hashed-password authentication remains. Errors render inside the overlay.
+
+Verified: Ubuntu build, full regression suite, eight language options, hero markup, closable account panel; desktop screenshot, mobile login with close visible, Hindi switch and return to English. Previewed desktop at reference width and mobile 390px; restored normal browser viewport. Latest test evidence /tmp/tmp.hv6DKeVTgQ. Not a claim of pixel-perfect parity across all pages: some category icons are generic and newer text still falls back to English outside Hindi/Odia. Translation human review remains required.

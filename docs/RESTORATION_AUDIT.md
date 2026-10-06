@@ -47,3 +47,5 @@ Recently modified in this checkpoint: backend/web.hpp, web_data.hpp, web_smoke.c
 See PROJECT_STATUS.md for the superseding current status. Saved addresses, isolated Buy Now, protected catalogue administration, translated checkout/support/status controls and important validation messages now have regression coverage. Local WAV-to-text through the actual C++ recognizer passed; microphone remains NOT TESTED. Exact reference parity, human translation review and TTS remain pending.
 
 October 6: search ranking unified in backend/search.hpp for API and HTML; canonical/exact-alias/normalized-alias/prefix/substring precedence tested in backend/search_test.cpp. Sorting preserves subcategory selection. Full regression suite passed.
+
+Screenshot theme checkpoint: header/hero/language dropdown/login overlay recreated in C++ HTML/CSS and browser-checked. Eight reference language options exposed. Authentication intentionally retains real hashed passwords rather than the reference's insecure demo profile. See PROJECT_STATUS.md for remaining parity limits.
