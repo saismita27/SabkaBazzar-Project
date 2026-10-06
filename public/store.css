@@ -508,3 +508,51 @@
 @media(max-width:1300px){
   .header-tools{gap:8px}
 }
+
+
+/* Compact product sort/filter row */
+main>.filters{
+  display:grid;
+  grid-template-columns:minmax(220px,360px) auto;
+  align-items:end;
+  justify-content:start;
+  gap:12px;
+  max-width:520px;
+  margin:12px 0 18px;
+}
+main>.filters label{
+  display:flex;
+  flex-direction:column;
+  gap:6px;
+  flex:none;
+  font-size:13px;
+  color:#40516c;
+}
+main>.filters select{
+  width:100%;
+  min-height:44px;
+  padding:10px 38px 10px 13px;
+  border:1px solid #cfd9e6;
+  border-radius:12px;
+  background:#fff;
+  color:#243149;
+  font-size:14px;
+}
+main>.filters button{
+  min-height:44px;
+  padding:10px 18px;
+  border-radius:12px;
+  font-size:14px;
+  align-self:end;
+}
+.department-title+form.filters{
+  grid-template-columns:minmax(240px,400px) auto;
+}
+@media(max-width:650px){
+  main>.filters,
+  .department-title+form.filters{
+    grid-template-columns:1fr;
+    max-width:none;
+  }
+  main>.filters button{width:100%}
+}
