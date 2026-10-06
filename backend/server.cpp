@@ -62,7 +62,7 @@ struct Store {
   if(op=="logout"){accounts->logout(old);if(paired==old)paired.clear();return token();}
   if(op!="register"&&op!="login")throw std::invalid_argument("Unknown account action");
   J guest=state(old);bool wasGuest=accounts->user(old).is_null();
-  auto fresh=accounts->authenticate(a.at("email"),a.at("password"),op=="register");
+  auto fresh=a.contains("mobile")?accounts->authenticate_mobile(a.at("mobile"),op=="register"):accounts->authenticate(a.at("email"),a.at("password"),op=="register");
   if(op=="register"&&wasGuest){guest.erase("webCsrf");guest["user"]=nullptr;save(fresh,guest);Statement q(db,"DELETE FROM clients WHERE id=?");q.text(1,old);q.step();}
   accounts->logout(old);if(paired==old)paired.clear();return fresh;
  }
