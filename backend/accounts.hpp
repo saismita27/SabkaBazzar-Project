@@ -25,13 +25,28 @@ public:
         Statement q(db,"SELECT a.owner,a.email,a.role FROM logins l JOIN accounts a ON a.owner=l.owner WHERE l.hash=? AND l.expires>?");
         q.text(1,hash_session(session));q.number(2,std::time(nullptr));
         if(q.step()!=SQLITE_ROW)return nullptr;
-        return {{"id",q.str(0)},{"email",q.str(1)},{"name",q.str(1)},{"role",q.str(2)}};
+        auto email=q.str(1);std::string mobile;const std::string suffix="@mobile.sabka.local";if(email.size()>suffix.size()&&email.compare(email.size()-suffix.size(),suffix.size(),suffix)==0)mobile=email.substr(0,email.size()-suffix.size());
+        return {{"id",q.str(0)},{"email",mobile.empty()?email:std::string()},{"mobile",mobile},{"name",mobile.empty()?email:mobile},{"role",q.str(2)}};
     }
     std::string owner(const std::string& session){auto u=user(session);return u.is_null()?session:u["id"].get<std::string>();}
     bool admin(const std::string& session){auto u=user(session);return !u.is_null()&&u["role"]=="admin";}
     void logout(const std::string& session){Statement q(db,"DELETE FROM logins WHERE hash=?");q.text(1,hash_session(session));q.step();}
     bool exists(const std::string& owner){Statement q(db,"SELECT 1 FROM accounts WHERE owner=?");q.text(1,owner);return q.step()==SQLITE_ROW;}
     void promote(std::string email){email=normalized(email);Statement q(db,"UPDATE accounts SET role='admin' WHERE email=?");q.text(1,email);q.step();if(sqlite3_changes(db)!=1)throw std::invalid_argument("Register the account before promoting it locally");}
+    std::string authenticate_mobile(std::string mobile,bool registration) {
+        mobile=normalized(mobile);mobile.erase(std::remove_if(mobile.begin(),mobile.end(),[](unsigned char ch){return ch==' '||ch=='-'||ch=='+';}),mobile.end());
+        if(mobile.rfind("91",0)==0&&mobile.size()==12)mobile=mobile.substr(2);
+        if(!std::regex_match(mobile,std::regex("[0-9]{10}")))throw std::invalid_argument("Enter a valid 10-digit mobile number");
+        auto email=mobile+"@mobile.sabka.local";std::string account;
+        {Statement q(db,"SELECT owner FROM accounts WHERE email=?");q.text(1,email);if(q.step()==SQLITE_ROW)account=q.str(0);}
+        if(registration){
+            if(!account.empty())throw std::invalid_argument("This demo mobile profile already exists; use Sign In");
+            account="account:"+token();auto hash=password_hash(token()+token());
+            Statement q(db,"INSERT INTO accounts(owner,email,password_hash) VALUES(?,?,?)");q.text(1,account);q.text(2,email);q.text(3,hash);q.step();
+        }else if(account.empty())throw std::invalid_argument("Demo profile not found; create an account first");
+        const auto current=std::time(nullptr);{Statement q(db,"DELETE FROM logins WHERE expires<=?");q.number(1,current);q.step();}
+        auto session=token();Statement q(db,"INSERT INTO logins VALUES(?,?,?)");q.text(1,hash_session(session));q.text(2,account);q.number(3,current+3600);q.step();return session;
+    }
     std::string authenticate(std::string email,const std::string& password,bool registration) {
         email=normalized(email);
         if(email.size()>254||!std::regex_match(email,std::regex("[a-z0-9._+%-]+@[a-z0-9.-]+\\.[a-z]{2,}")))throw std::invalid_argument("Enter a valid email address");
