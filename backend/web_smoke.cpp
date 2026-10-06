@@ -10,7 +10,7 @@ int main(){try{
  httplib::Client c("127.0.0.1",8080);auto r=c.Get("/");check(r&&r->status==200,"C++ homepage responds");check(r->body.find("<script")==std::string::npos,"no browser scripts");check(r->body.find("Where every family finds its favourites")!=std::string::npos,"approved branding");auto cookie=r->get_header_value("Set-Cookie");cookie=cookie.substr(0,cookie.find(';'));httplib::Headers h={{"Cookie",cookie}};auto csrf=value(r->body,"csrf");
  auto post=[&](httplib::Params p,int status=303){p.emplace("csrf",csrf);auto x=c.Post("/shop/action",h,p);check(x&&x->status==status,"form action status");return x;};
  check(r->body.find("auth-overlay")!=std::string::npos,"new visitor sees welcome login panel");
- post({{"op","welcome.dismiss"},{"back","/"}});r=c.Get("/",h);check(r&&r->body.find("auth-overlay")==std::string::npos,"Login Later dismisses welcome panel");
+ post({{"op","welcome.dismiss"},{"back","/"}});r=c.Get("/",h);check(r&&r->body.find("auth-overlay")==std::string::npos,"Login Later dismisses the immediate redirect");r=c.Get("/",h);check(r&&r->body.find("auth-overlay")!=std::string::npos,"clean homepage refresh shows login panel again");
  auto fresh=c.Get("/");check(fresh&&fresh->body.find("auth-overlay")!=std::string::npos,"welcome dismissal is session isolated");
  for(const auto* code:{"en","hi","or","mr","bn","ta","te","gu"})check(r->body.find(std::string("name='language' value='")+code+"'")!=std::string::npos,"reference language menu option");
  check(r->body.find("hero-showcase")!=std::string::npos,"reference hero photo cards");
@@ -20,7 +20,7 @@ int main(){try{
  auto bad=c.Post("/shop/action",h,httplib::Params{{"op","cart.add"}});check(bad&&bad->status==403,"form CSRF rejection");
  r=c.Get("/?q=tej%20patta",h);check(r&&r->body.find("1 sample products")!=std::string::npos,"C++ HTML alias search");
  post({{"op","cart.add"},{"productId","prod-bay-leaf"},{"quantity","1"},{"back","/cart"}});
- r=c.Get("/product?id=prod-bay-leaf",h);check(r&&r->body.find("Go to Cart")!=std::string::npos,"cart button reflects persisted state");
+ r=c.Get("/product?id=prod-bay-leaf",h);check(r&&r->body.find("Go to Cart")!=std::string::npos,"cart button reflects persisted state");r=c.Get("/cart",h);check(r&&r->body.find("cart-drawer")!=std::string::npos&&r->body.find("cart.remove")!=std::string::npos,"cart drawer includes explicit remove control");
  r=c.Get("/checkout",h);auto key=value(r->body,"key");httplib::Params p={{"op","checkout"},{"key",key},{"fullName","Demo"},{"addressLine","Test street"},{"city","Demo"},{"pincode","751001"},{"mobile","9000000000"},{"payment","COD"},{"back","/orders"}};post(p);post(p);
  r=c.Get("/api/state",h);auto state=J::parse(r->body);check(state["orders"].size()==1&&state["cart"].empty(),"HTML checkout persists once across repeated submission");
  post({{"op","support.create"},{"subject","<script>alert(1)</script>"},{"message","<img src=x>"},{"type","Question"},{"back","/help"}});
